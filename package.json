@@ -1,8 +1,13 @@
 {
+    "dependencies": {
+        "lucide-svelte": "^0.548.0"
+    },
     "devDependencies": {
         "@eslint/compat": "^1.4.0",
         "@eslint/js": "^9.38.0",
         "@playwright/test": "^1.56.1",
+        "@skeletonlabs/skeleton": "^4.2.2",
+        "@skeletonlabs/skeleton-svelte": "^4.2.2",
         "@sveltejs/adapter-static": "^3.0.10",
         "@sveltejs/kit": "^2.47.1",
         "@sveltejs/vite-plugin-svelte": "^6.2.1",
