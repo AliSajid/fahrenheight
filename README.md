@@ -1,11 +1,28 @@
 # Fahrenheit Temperature Converter
 
+[![Test and Check](https://github.com/AliSajid/fahrenheight/actions/workflows/test.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/test.yaml)
+[![Deploy to GitHub Pages](https://github.com/AliSajid/fahrenheight/actions/workflows/deploy.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/deploy.yaml)
+[![CodeQL](https://github.com/AliSajid/fahrenheight/actions/workflows/codeql.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/codeql.yaml)
+[![Scorecard](https://github.com/AliSajid/fahrenheight/actions/workflows/scorecard.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/scorecard.yaml)
+[![Dependency Review](https://github.com/AliSajid/fahrenheight/actions/workflows/dependency-review.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/dependency-review.yaml)
+
+[![GitHub License](https://img.shields.io/github/license/AliSajid/fahrenheight)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/AliSajid/fahrenheight)](https://github.com/AliSajid/fahrenheight/releases)
+[![Node.js Version](https://img.shields.io/badge/node-22.x-brightgreen)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-10.x-orange)](https://pnpm.io/)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-2.x-ff3e00?logo=svelte)](https://svelte.dev/)
+[![Svelte](https://img.shields.io/badge/Svelte-5.x-ff3e00?logo=svelte)](https://svelte.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.x-06B6D4?logo=tailwind-css)](https://tailwindcss.com/)
+
 A static SvelteKit web application demonstrating:
 
 1. Dynamic bidirectional temperature conversion (Celsius ↔ Fahrenheit)
 2. Analysis of the approximation formula `(F - 32) / 2 ≈ C` vs the exact formula `(F - 32) * 5/9 = C`
 
 Built with SvelteKit 2.x, Svelte 5, and Tailwind CSS 4.x.
+
+> **Note**: When pushing to GitHub, replace `AliSajid` in the badge URLs with your actual GitHub username.
 
 ## Prerequisites
 
