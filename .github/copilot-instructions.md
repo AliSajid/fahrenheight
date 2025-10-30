@@ -160,7 +160,9 @@ fahrenheight/
 
 ## Commands
 
-This project uses **mise** for task management. You can run tasks using either `mise run <task>` or the shorthand `mise <task>`.
+This project uses **mise** as the primary task runner. All commands are defined in `mise.toml` and execute directly using `pnpm exec` without relying on package.json scripts.
+
+You can run tasks using either `mise run <task>` or the shorthand `mise <task>`.
 
 ```bash
 # Development
@@ -179,28 +181,28 @@ mise test             # Run all tests
 # Code Quality
 mise check            # Type-check with svelte-check
 mise check-watch      # Type-check in watch mode
-mise lint             # Lint code with ESLint and Prettier
-mise format           # Format code with Prettier
+mise lint             # Lint and check code (Prettier + ESLint)
+mise lint:check       # Same as lint (alias)
+mise format           # Format code with Prettier (write changes)
+mise format:check     # Check formatting (no changes)
 
 # Dependencies & Setup
 mise install          # Install dependencies
 mise sync             # Sync SvelteKit types
 
 # CI
-mise ci               # Run all CI checks (lint, type-check, test)
+mise ci               # Run all CI checks (lint:check, format:check, check, test)
 ```
 
-### Alternative: Direct pnpm commands
+### Important: Mise-First Approach
 
-If you prefer not to use mise, you can still use pnpm directly:
+**Do NOT use pnpm scripts directly.** The `package.json` only contains the `prepare` lifecycle hook for SvelteKit type generation. All development tasks must be run through mise to ensure consistency across local development, CI/CD, and pre-commit hooks.
 
-```bash
-pnpm dev              # Start dev server
-pnpm build            # Build static site
-pnpm test             # Run all tests
-pnpm lint             # Lint code
-pnpm format           # Format code
-```
+All mise tasks execute commands directly:
+
+- Example: `mise dev` runs `pnpm exec vite dev` (not `pnpm dev`)
+- This ensures commands are explicit and not dependent on package.json scripts
+- Changes to task definitions only need to be made in `mise.toml`
 
 ## Charting Library Recommendations
 
