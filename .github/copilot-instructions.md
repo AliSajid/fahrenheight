@@ -245,6 +245,67 @@ For the approximation graph, consider:
 - Add comments for complex calculations
 - Keep components focused and single-purpose
 
+## GitHub Workflows
+
+This project includes several automated workflows:
+
+### 1. Test and Check (`test.yaml`)
+
+- **Trigger**: On every push and pull request
+- **Purpose**: Run linting, type-checking, unit tests, and E2E tests
+- **Steps**:
+  - Lint code with ESLint and Prettier
+  - Type-check with svelte-check
+  - Run unit tests with Vitest
+  - Run E2E tests with Playwright
+  - Upload test results as artifacts
+
+### 2. Deploy to GitHub Pages (`deploy.yaml`)
+
+- **Trigger**: On push to `main` branch
+- **Purpose**: Build and deploy the static site to GitHub Pages
+- **Steps**:
+  - Build static site with SvelteKit
+  - Upload build artifact
+  - Deploy to GitHub Pages
+- **Note**: Requires GitHub Pages to be enabled in repository settings
+
+### 3. Scorecard Supply-Chain Security (`scorecard.yaml`)
+
+- **Trigger**: Weekly (Thursdays at 1:30 AM) and on push to `main`
+- **Purpose**: Analyze repository for security best practices
+- **Steps**:
+  - Run OSSF Scorecard analysis
+  - Upload results as SARIF
+  - Publish to GitHub Security tab
+- **Note**: Provides security score and recommendations
+
+### 4. CodeQL Analysis (`codeql.yaml`)
+
+- **Trigger**: On push/PR to `main`, and weekly (Fridays at 7:31 PM)
+- **Purpose**: Static code analysis for security vulnerabilities
+- **Steps**:
+  - Initialize CodeQL for TypeScript
+  - Run security and quality queries
+  - Upload results to GitHub Security tab
+- **Configuration**: Uses security-extended query suite
+
+### 5. Dependency Review (`dependency-review.yaml`)
+
+- **Trigger**: On every pull request
+- **Purpose**: Review dependency changes for security issues
+- **Steps**:
+  - Scan for known vulnerabilities in dependencies
+  - Fail on moderate or higher severity issues
+  - Block GPL-2.0 and GPL-3.0 licensed dependencies
+- **Note**: Helps prevent vulnerable or incompatibly licensed packages
+
+All workflows use:
+
+- **Harden Runner**: Restricts network egress for security
+- **Pinned Actions**: All actions are pinned to specific SHA hashes
+- **Mise**: For consistent task execution across environments
+
 ## Success Criteria
 
 ✅ Two-way temperature converter works correctly

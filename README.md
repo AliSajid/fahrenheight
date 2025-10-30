@@ -126,6 +126,17 @@ src/
 - **Testing**: Vitest + Playwright
 - **Task Runner**: mise
 
+## CI/CD & Security
+
+This project uses GitHub Actions for continuous integration, deployment, and security scanning:
+
+- **Testing**: Automated tests run on every push and pull request
+- **Deployment**: Automatic deployment to GitHub Pages on push to `main`
+- **Security**: CodeQL analysis, Scorecard security checks, and dependency review
+- **Quality**: Linting, type-checking, and formatting validation
+
+See [WORKFLOWS.md](WORKFLOWS.md) for detailed workflow documentation.
+
 ## Learn More
 
 - [SvelteKit Documentation](https://svelte.dev/docs/kit)
