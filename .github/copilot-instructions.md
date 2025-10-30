@@ -15,6 +15,7 @@ This is a static SvelteKit web application for temperature conversion and analys
 - **Styling**: Tailwind CSS 4.x
 - **Build Tool**: Vite 7.x
 - **Package Manager**: pnpm
+- **Task Runner**: mise (https://mise.jdx.dev/)
 - **Testing**:
   - Unit/Component: Vitest with @vitest/browser
   - E2E: Playwright
@@ -76,16 +77,20 @@ fahrenheight/
 
   ```typescript
   // Exact conversions
-  export function celsiusToFahrenheit(c: number): number
-  export function fahrenheitToCelsius(f: number): number
+  export function celsiusToFahrenheit(c: number): number;
+  export function fahrenheitToCelsius(f: number): number;
 
   // Approximation
-  export function fahrenheitToCelsiusApprox(f: number): number
+  export function fahrenheitToCelsiusApprox(f: number): number;
 
   // Analysis
-  export function calculateError(exact: number, approx: number): number
-  export function calculatePercentError(exact: number, approx: number): number
-  export function generateComparisonData(startF: number, endF: number, step: number): ComparisonData[]
+  export function calculateError(exact: number, approx: number): number;
+  export function calculatePercentError(exact: number, approx: number): number;
+  export function generateComparisonData(
+  	startF: number,
+  	endF: number,
+  	step: number
+  ): ComparisonData[];
   ```
 
 ### 4. Main Page Layout
@@ -155,24 +160,46 @@ fahrenheight/
 
 ## Commands
 
+This project uses **mise** for task management. You can run tasks using either `mise run <task>` or the shorthand `mise <task>`.
+
 ```bash
 # Development
-pnpm dev              # Start dev server
-pnpm dev -- --open    # Start dev server and open browser
+mise dev              # Start dev server
+mise dev-open         # Start dev server and open browser
 
 # Building
-pnpm build            # Build static site (output to build/)
-pnpm preview          # Preview production build locally
+mise build            # Build static site (output to build/)
+mise preview          # Preview production build locally
 
 # Testing
-pnpm test:unit        # Run unit tests (Vitest)
-pnpm test:e2e         # Run E2E tests (Playwright)
-pnpm test             # Run all tests
+mise test-unit        # Run unit tests (Vitest)
+mise test-e2e         # Run E2E tests (Playwright)
+mise test             # Run all tests
 
 # Code Quality
-pnpm check            # Type-check with svelte-check
+mise check            # Type-check with svelte-check
+mise check-watch      # Type-check in watch mode
+mise lint             # Lint code with ESLint and Prettier
+mise format           # Format code with Prettier
+
+# Dependencies & Setup
+mise install          # Install dependencies
+mise sync             # Sync SvelteKit types
+
+# CI
+mise ci               # Run all CI checks (lint, type-check, test)
+```
+
+### Alternative: Direct pnpm commands
+
+If you prefer not to use mise, you can still use pnpm directly:
+
+```bash
+pnpm dev              # Start dev server
+pnpm build            # Build static site
+pnpm test             # Run all tests
 pnpm lint             # Lint code
-pnpm format           # Format code with Prettier
+pnpm format           # Format code
 ```
 
 ## Charting Library Recommendations

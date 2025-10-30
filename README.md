@@ -1,38 +1,133 @@
-# sv
+# Fahrenheit Temperature Converter
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A static SvelteKit web application demonstrating:
 
-## Creating a project
+1. Dynamic bidirectional temperature conversion (Celsius ↔ Fahrenheit)
+2. Analysis of the approximation formula `(F - 32) / 2 ≈ C` vs the exact formula `(F - 32) * 5/9 = C`
 
-If you're seeing this, you've probably already done this step. Congrats!
+Built with SvelteKit 2.x, Svelte 5, and Tailwind CSS 4.x.
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) 22.x
+- [pnpm](https://pnpm.io/) package manager
+- [mise](https://mise.jdx.dev/) task runner (optional but recommended)
+
+## Setup
+
+Install dependencies:
 
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+pnpm install
 ```
 
-## Developing
+## Development
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+This project uses [mise](https://mise.jdx.dev/) for task management.
+
+Start the development server:
 
 ```sh
-npm run dev
+mise dev
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+# or open in browser automatically
+mise dev-open
+```
+
+Alternatively, without mise:
+
+```sh
+pnpm dev
+
+# or with auto-open
+pnpm dev -- --open
 ```
 
 ## Building
 
-To create a production version of your app:
+Build the static site for production:
 
 ```sh
-npm run build
+mise build
 ```
 
-You can preview the production build with `npm run preview`.
+Preview the production build:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```sh
+mise preview
+```
+
+## Testing
+
+Run all tests:
+
+```sh
+mise test
+```
+
+Run only unit tests:
+
+```sh
+mise test-unit
+```
+
+Run only E2E tests:
+
+```sh
+mise test-e2e
+```
+
+## Code Quality
+
+Type-check:
+
+```sh
+mise check
+```
+
+Lint code:
+
+```sh
+mise lint
+```
+
+Format code:
+
+```sh
+mise format
+```
+
+Run all CI checks:
+
+```sh
+mise ci
+```
+
+## Project Structure
+
+```text
+src/
+├── routes/           # SvelteKit routes
+│   ├── +page.svelte # Main application page
+│   └── +layout.svelte
+├── lib/              # Reusable components and utilities
+│   ├── components/  # Svelte components
+│   └── utils/       # Utility functions
+├── app.html         # HTML template
+└── app.css          # Global styles
+```
+
+## Technology Stack
+
+- **Framework**: SvelteKit 2.x with Svelte 5
+- **Styling**: Tailwind CSS 4.x
+- **Build**: Vite 7.x
+- **Adapter**: @sveltejs/adapter-static (Static Site Generation)
+- **Testing**: Vitest + Playwright
+- **Task Runner**: mise
+
+## Learn More
+
+- [SvelteKit Documentation](https://svelte.dev/docs/kit)
+- [Svelte 5 Documentation](https://svelte.dev/docs/svelte/overview)
+- [mise Documentation](https://mise.jdx.dev/)

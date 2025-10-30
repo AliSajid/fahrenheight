@@ -1,0 +1,64 @@
+# mise configuration for fahrenheight project
+# https://mise.jdx.dev/
+
+[tools]
+node = "22"
+
+[env]
+NODE_ENV = "development"
+
+[tasks.dev]
+description = "Start development server"
+run = "pnpm dev"
+
+[tasks.dev-open]
+description = "Start development server and open browser"
+run = "pnpm dev -- --open"
+
+[tasks.build]
+description = "Build static site for production"
+run = "pnpm build"
+
+[tasks.preview]
+description = "Preview production build locally"
+run = "pnpm preview"
+
+[tasks.check]
+description = "Type-check with svelte-check"
+run = "pnpm check"
+
+[tasks.check-watch]
+description = "Type-check with svelte-check in watch mode"
+run = "pnpm check:watch"
+
+[tasks.lint]
+description = "Lint code with ESLint and Prettier"
+run = "pnpm lint"
+
+[tasks.format]
+description = "Format code with Prettier"
+run = "pnpm format"
+
+[tasks.test]
+description = "Run all tests (unit + e2e)"
+run = "pnpm test"
+
+[tasks.test-unit]
+description = "Run unit tests with Vitest"
+run = "pnpm test:unit"
+
+[tasks.test-e2e]
+description = "Run E2E tests with Playwright"
+run = "pnpm test:e2e"
+
+[tasks.install]
+description = "Install dependencies"
+run = "pnpm install"
+
+[tasks.sync]
+description = "Sync SvelteKit types"
+run = "pnpm prepare"
+
+[tasks.ci]
+description = "Run CI checks (lint, type-check, test)"
+depends = ["lint", "check", "test"]
