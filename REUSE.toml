@@ -1,0 +1,87 @@
+version = 1
+SPDX-PackageName = "fahrenheight"
+SPDX-PackageSupplier = "Your Name <your.email@example.com>"
+SPDX-PackageDownloadLocation = "https://github.com/USERNAME/fahrenheight"
+
+# Source code files - MIT License
+[[annotations]]
+path = "src/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "MIT"
+
+# E2E tests - MIT License
+[[annotations]]
+path = "e2e/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "MIT"
+
+# GitHub workflows - MIT License
+[[annotations]]
+path = ".github/workflows/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "MIT"
+
+# Configuration files - CC0-1.0 (Public Domain)
+[[annotations]]
+path = [
+    ".prettierrc",
+    ".prettierignore",
+    ".gitignore",
+    ".npmrc",
+    "eslint.config.js",
+    "playwright.config.ts",
+    "svelte.config.js",
+    "tsconfig.json",
+    "vite.config.ts",
+    "vitest-setup-client.ts",
+    "cog.toml",
+    "mise.toml",
+    ".mise.local.toml.example",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "CC0-1.0"
+
+# Package manager files - CC0-1.0 (Public Domain)
+[[annotations]]
+path = ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "CC0-1.0"
+
+# Documentation files - MIT License
+[[annotations]]
+path = [
+    "README.md",
+    "MISE.md",
+    "WORKFLOWS.md",
+    ".github/copilot-instructions.md",
+    ".github/WORKFLOWS_QUICK_REF.md",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "MIT"
+
+# Static assets - MIT License
+[[annotations]]
+path = "static/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "MIT"
+
+# REUSE configuration - CC0-1.0
+[[annotations]]
+path = "REUSE.toml"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "CC0-1.0"
+
+# License files - no license needed (they are the licenses)
+[[annotations]]
+path = "LICENSES/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "CC0-1.0"

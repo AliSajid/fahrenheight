@@ -1,2 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';

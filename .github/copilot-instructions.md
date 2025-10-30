@@ -326,3 +326,4 @@ All workflows use:
 - Keep the UI simple and focused on the two main features
 - Prioritize accuracy in calculations and clarity in presentation
 - When implementing the graph, start simple and iterate
+- Do not add summary document files unless explicitly requested

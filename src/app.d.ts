@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>
+//
+// SPDX-License-Identifier: MIT
+
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
@@ -10,4 +14,4 @@ declare global {
 	}
 }
 
-export {};
+export { };

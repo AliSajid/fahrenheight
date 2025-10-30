@@ -22,8 +22,6 @@ A static SvelteKit web application demonstrating:
 
 Built with SvelteKit 2.x, Svelte 5, and Tailwind CSS 4.x.
 
-> **Note**: When pushing to GitHub, replace `AliSajid` in the badge URLs with your actual GitHub username.
-
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) 22.x
