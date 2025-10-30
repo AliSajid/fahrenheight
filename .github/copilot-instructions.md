@@ -17,8 +17,8 @@ This is a static SvelteKit web application for temperature conversion and analys
 - **Package Manager**: pnpm
 - **Task Runner**: mise (https://mise.jdx.dev/)
 - **Testing**:
-  - Unit/Component: Vitest with @vitest/browser
-  - E2E: Playwright
+    - Unit/Component: Vitest with @vitest/browser
+    - E2E: Playwright
 - **Language**: TypeScript
 - **Adapter**: @sveltejs/adapter-static (SSG - Static Site Generation)
 
@@ -46,62 +46,62 @@ fahrenheight/
 
 - **Location**: `src/lib/components/TemperatureConverter.svelte`
 - **Functionality**:
-  - Two input fields: one for Celsius, one for Fahrenheit
-  - Real-time bidirectional conversion as user types
-  - Use exact formula: `C = (F - 32) * 5/9` and `F = C * 9/5 + 32`
-  - Handle empty inputs gracefully (don't show NaN)
-  - Input validation for reasonable temperature ranges
-  - Clear, accessible form labels
+    - Two input fields: one for Celsius, one for Fahrenheit
+    - Real-time bidirectional conversion as user types
+    - Use exact formula: `C = (F - 32) * 5/9` and `F = C * 9/5 + 32`
+    - Handle empty inputs gracefully (don't show NaN)
+    - Input validation for reasonable temperature ranges
+    - Clear, accessible form labels
 
 ### 2. Approximation Analysis Graph
 
 - **Location**: `src/lib/components/ApproximationGraph.svelte`
 - **Functionality**:
-  - Display a graph comparing:
-    - Exact Celsius values (from `(F - 32) * 5/9`)
-    - Approximation values (from `(F - 32) / 2`)
-    - Error/difference between them
-  - Default temperature range: -40°F to 120°F (configurable)
-  - X-axis: Fahrenheit temperature
-  - Y-axis: Celsius temperature or error percentage
-  - Consider using a lightweight charting library like:
-    - Chart.js with svelte-chartjs
-    - D3.js with custom Svelte integration
-    - Or a simple SVG-based custom solution
-  - Show statistics: max error, average error, RMS error
+    - Display a graph comparing:
+        - Exact Celsius values (from `(F - 32) * 5/9`)
+        - Approximation values (from `(F - 32) / 2`)
+        - Error/difference between them
+    - Default temperature range: -40°F to 120°F (configurable)
+    - X-axis: Fahrenheit temperature
+    - Y-axis: Celsius temperature or error percentage
+    - Consider using a lightweight charting library like:
+        - Chart.js with svelte-chartjs
+        - D3.js with custom Svelte integration
+        - Or a simple SVG-based custom solution
+    - Show statistics: max error, average error, RMS error
 
 ### 3. Conversion Utilities
 
 - **Location**: `src/lib/utils/temperature.ts`
 - **Functions**:
 
-  ```typescript
-  // Exact conversions
-  export function celsiusToFahrenheit(c: number): number;
-  export function fahrenheitToCelsius(f: number): number;
+    ```typescript
+    // Exact conversions
+    export function celsiusToFahrenheit(c: number): number
+    export function fahrenheitToCelsius(f: number): number
 
-  // Approximation
-  export function fahrenheitToCelsiusApprox(f: number): number;
+    // Approximation
+    export function fahrenheitToCelsiusApprox(f: number): number
 
-  // Analysis
-  export function calculateError(exact: number, approx: number): number;
-  export function calculatePercentError(exact: number, approx: number): number;
-  export function generateComparisonData(
-  	startF: number,
-  	endF: number,
-  	step: number
-  ): ComparisonData[];
-  ```
+    // Analysis
+    export function calculateError(exact: number, approx: number): number
+    export function calculatePercentError(exact: number, approx: number): number
+    export function generateComparisonData(
+        startF: number,
+        endF: number,
+        step: number
+    ): ComparisonData[]
+    ```
 
 ### 4. Main Page Layout
 
 - **Location**: `src/routes/+page.svelte`
 - **Structure**:
-  - Page title and description
-  - Temperature Converter section (prominently displayed)
-  - Approximation Analysis section with graph
-  - Optional: Information about the approximation formula and when it's useful
-  - Responsive design (mobile-friendly)
+    - Page title and description
+    - Temperature Converter section (prominently displayed)
+    - Approximation Analysis section with graph
+    - Optional: Information about the approximation formula and when it's useful
+    - Responsive design (mobile-friendly)
 
 ## Development Guidelines
 
@@ -130,18 +130,18 @@ fahrenheight/
 ### Testing Strategy
 
 1. **Unit Tests** (`*.spec.ts` or `*.test.ts`):
-   - Test conversion functions thoroughly
-   - Test edge cases (0°, negative temps, extreme values)
-   - Test error calculations
+    - Test conversion functions thoroughly
+    - Test edge cases (0°, negative temps, extreme values)
+    - Test error calculations
 2. **Component Tests** (Vitest browser mode):
-   - Test converter input/output behavior
-   - Test that typing in one field updates the other
-   - Test graph rendering with sample data
+    - Test converter input/output behavior
+    - Test that typing in one field updates the other
+    - Test graph rendering with sample data
 
 3. **E2E Tests** (`e2e/*.test.ts`):
-   - Test full user journey
-   - Test converter functionality end-to-end
-   - Verify graph appears and displays data
+    - Test full user journey
+    - Test converter functionality end-to-end
+    - Verify graph appears and displays data
 
 ### Static Site Requirements
 
@@ -207,20 +207,20 @@ pnpm format           # Format code
 For the approximation graph, consider:
 
 1. **Chart.js** (Recommended for simplicity):
-   - Install: `pnpm add chart.js svelte-chartjs`
-   - Good for standard line/scatter charts
-   - Lightweight and performant
+    - Install: `pnpm add chart.js svelte-chartjs`
+    - Good for standard line/scatter charts
+    - Lightweight and performant
 
 2. **Custom SVG** (Recommended for learning/control):
-   - No dependencies
-   - Full control over rendering
-   - Great for simple line graphs
-   - Can use Svelte's reactivity naturally
+    - No dependencies
+    - Full control over rendering
+    - Great for simple line graphs
+    - Can use Svelte's reactivity naturally
 
 3. **D3.js** (If complex visualization needed):
-   - Install: `pnpm add d3`
-   - Powerful but heavier dependency
-   - Good for custom, complex visualizations
+    - Install: `pnpm add d3`
+    - Powerful but heavier dependency
+    - Good for custom, complex visualizations
 
 ## Example Temperature Ranges for Analysis
 
@@ -254,20 +254,20 @@ This project includes several automated workflows:
 - **Trigger**: On every push and pull request
 - **Purpose**: Run linting, type-checking, unit tests, and E2E tests
 - **Steps**:
-  - Lint code with ESLint and Prettier
-  - Type-check with svelte-check
-  - Run unit tests with Vitest
-  - Run E2E tests with Playwright
-  - Upload test results as artifacts
+    - Lint code with ESLint and Prettier
+    - Type-check with svelte-check
+    - Run unit tests with Vitest
+    - Run E2E tests with Playwright
+    - Upload test results as artifacts
 
 ### 2. Deploy to GitHub Pages (`deploy.yaml`)
 
 - **Trigger**: On push to `main` branch
 - **Purpose**: Build and deploy the static site to GitHub Pages
 - **Steps**:
-  - Build static site with SvelteKit
-  - Upload build artifact
-  - Deploy to GitHub Pages
+    - Build static site with SvelteKit
+    - Upload build artifact
+    - Deploy to GitHub Pages
 - **Note**: Requires GitHub Pages to be enabled in repository settings
 
 ### 3. Scorecard Supply-Chain Security (`scorecard.yaml`)
@@ -275,9 +275,9 @@ This project includes several automated workflows:
 - **Trigger**: Weekly (Thursdays at 1:30 AM) and on push to `main`
 - **Purpose**: Analyze repository for security best practices
 - **Steps**:
-  - Run OSSF Scorecard analysis
-  - Upload results as SARIF
-  - Publish to GitHub Security tab
+    - Run OSSF Scorecard analysis
+    - Upload results as SARIF
+    - Publish to GitHub Security tab
 - **Note**: Provides security score and recommendations
 
 ### 4. CodeQL Analysis (`codeql.yaml`)
@@ -285,9 +285,9 @@ This project includes several automated workflows:
 - **Trigger**: On push/PR to `main`, and weekly (Fridays at 7:31 PM)
 - **Purpose**: Static code analysis for security vulnerabilities
 - **Steps**:
-  - Initialize CodeQL for TypeScript
-  - Run security and quality queries
-  - Upload results to GitHub Security tab
+    - Initialize CodeQL for TypeScript
+    - Run security and quality queries
+    - Upload results to GitHub Security tab
 - **Configuration**: Uses security-extended query suite
 
 ### 5. Dependency Review (`dependency-review.yaml`)
@@ -295,9 +295,9 @@ This project includes several automated workflows:
 - **Trigger**: On every pull request
 - **Purpose**: Review dependency changes for security issues
 - **Steps**:
-  - Scan for known vulnerabilities in dependencies
-  - Fail on moderate or higher severity issues
-  - Block GPL-2.0 and GPL-3.0 licensed dependencies
+    - Scan for known vulnerabilities in dependencies
+    - Fail on moderate or higher severity issues
+    - Block GPL-2.0 and GPL-3.0 licensed dependencies
 - **Note**: Helps prevent vulnerable or incompatibly licensed packages
 
 All workflows use:

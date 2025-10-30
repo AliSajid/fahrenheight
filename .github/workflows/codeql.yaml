@@ -8,7 +8,7 @@ on:
         branches:
             - main
     schedule:
-        - cron: "31 19 * * 5"
+        - cron: '31 19 * * 5'
 
 permissions:
     contents: read
@@ -53,4 +53,4 @@ jobs:
             - name: Perform CodeQL Analysis
               uses: github/codeql-action/analyze@aa578102511db1f4524ed59b8cc2bae4f6e88195 # v3.27.6
               with:
-                  category: "/language:${{ matrix.language }}"
+                  category: '/language:${{ matrix.language }}'

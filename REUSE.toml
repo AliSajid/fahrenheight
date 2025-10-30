@@ -1,7 +1,7 @@
 version = 1
 SPDX-PackageName = "fahrenheight"
-SPDX-PackageSupplier = "Your Name <your.email@example.com>"
-SPDX-PackageDownloadLocation = "https://github.com/USERNAME/fahrenheight"
+SPDX-PackageSupplier = "Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-PackageDownloadLocation = "https://github.com/AliSajid/fahrenheight"
 
 # Source code files - MIT License
 [[annotations]]
@@ -27,10 +27,17 @@ SPDX-License-Identifier = "MIT"
 # Configuration files - CC0-1.0 (Public Domain)
 [[annotations]]
 path = [
-    ".prettierrc",
+    ".prettierrc.json",
     ".prettierignore",
     ".gitignore",
+    ".gitleaksignore",
+    ".markdownlint.json",
+    ".markdownlintignore",
     ".npmrc",
+    ".pre-commit-config.yaml",
+    ".secrets.baseline",
+    ".vale.ini",
+    ".vscode/settings.json",
     "eslint.config.js",
     "playwright.config.ts",
     "svelte.config.js",
@@ -54,13 +61,7 @@ SPDX-License-Identifier = "CC0-1.0"
 
 # Documentation files - MIT License
 [[annotations]]
-path = [
-    "README.md",
-    "MISE.md",
-    "WORKFLOWS.md",
-    ".github/copilot-instructions.md",
-    ".github/WORKFLOWS_QUICK_REF.md",
-]
+path = ["README.md", "MISE.md", ".github/copilot-instructions.md"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
 SPDX-License-Identifier = "MIT"
@@ -71,6 +72,13 @@ path = "static/**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
 SPDX-License-Identifier = "MIT"
+
+# Vale styles and vocabularies - CC0-1.0
+[[annotations]]
+path = "styles/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
+SPDX-License-Identifier = "CC0-1.0"
 
 # REUSE configuration - CC0-1.0
 [[annotations]]
