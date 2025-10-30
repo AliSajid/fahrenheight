@@ -9,39 +9,39 @@ NODE_ENV = "development"
 
 [tasks.dev]
 description = "Start development server"
-run = "pnpm dev"
+run = "pnpm exec vite dev"
 
 [tasks.dev-open]
 description = "Start development server and open browser"
-run = "pnpm dev -- --open"
+run = "pnpm exec vite dev --open"
 
 [tasks.build]
 description = "Build static site for production"
-run = "pnpm build"
+run = "pnpm exec vite build"
 
 [tasks.preview]
 description = "Preview production build locally"
-run = "pnpm preview"
+run = "pnpm exec vite preview"
 
 [tasks.check]
 description = "Type-check with svelte-check"
-run = "pnpm check"
+run = "pnpm exec svelte-kit sync && pnpm exec svelte-check --tsconfig ./tsconfig.json"
 
 [tasks.check-watch]
 description = "Type-check with svelte-check in watch mode"
-run = "pnpm check:watch"
+run = "pnpm exec svelte-kit sync && pnpm exec svelte-check --tsconfig ./tsconfig.json --watch"
 
 [tasks.lint]
 description = "Lint and check code with ESLint and Prettier (no fixes)"
-run = "pnpm lint"
+run = "pnpm exec prettier --check . && pnpm exec eslint ."
 
 [tasks."lint:check"]
 description = "Check code with ESLint and Prettier (alias for lint)"
-run = "pnpm lint"
+run = "pnpm exec prettier --check . && pnpm exec eslint ."
 
 [tasks.format]
 description = "Format code with Prettier (write changes)"
-run = "pnpm format"
+run = "pnpm exec prettier --write ."
 
 [tasks."format:check"]
 description = "Check code formatting with Prettier (no changes)"
@@ -49,15 +49,15 @@ run = "pnpm exec prettier --check ."
 
 [tasks.test]
 description = "Run all tests (unit + e2e)"
-run = "pnpm test"
+run = "pnpm exec vitest --run && pnpm exec playwright test"
 
 [tasks.test-unit]
 description = "Run unit tests with Vitest"
-run = "pnpm test:unit"
+run = "pnpm exec vitest"
 
 [tasks.test-e2e]
 description = "Run E2E tests with Playwright"
-run = "pnpm test:e2e"
+run = "pnpm exec playwright test"
 
 [tasks.install]
 description = "Install dependencies"
@@ -65,7 +65,7 @@ run = "pnpm install"
 
 [tasks.sync]
 description = "Sync SvelteKit types"
-run = "pnpm prepare"
+run = "pnpm exec svelte-kit sync || echo ''"
 
 [tasks.ci]
 description = "Run CI checks (lint, type-check, test)"

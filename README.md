@@ -38,7 +38,7 @@ pnpm install
 
 ## Development
 
-This project uses [mise](https://mise.jdx.dev/) for task management.
+This project uses [mise](https://mise.jdx.dev/) as the primary task runner. All development commands are defined in `mise.toml` and run directly without relying on package.json scripts.
 
 Start the development server:
 
@@ -49,14 +49,7 @@ mise dev
 mise dev-open
 ```
 
-Alternatively, without mise:
-
-```sh
-pnpm dev
-
-# or with auto-open
-pnpm dev -- --open
-```
+> **Note**: This project uses a mise-first approach. The `package.json` only contains the `prepare` lifecycle hook for SvelteKit type generation. All other tasks should be run through mise.
 
 ## Building
 
@@ -100,23 +93,61 @@ Type-check:
 mise check
 ```
 
-Lint code:
+Lint and check code (Prettier + ESLint, no fixes):
 
 ```sh
 mise lint
+# or explicitly
+mise lint:check
 ```
 
-Format code:
+Check code formatting (no changes):
+
+```sh
+mise format:check
+```
+
+Format code (write changes):
 
 ```sh
 mise format
 ```
 
-Run all CI checks:
+Run all CI checks (lint, format, type-check, tests):
 
 ```sh
 mise ci
 ```
+
+## Available Mise Tasks
+
+View all available tasks:
+
+```sh
+mise tasks
+```
+
+Key tasks:
+
+| Task                | Description                               |
+| ------------------- | ----------------------------------------- |
+| `mise dev`          | Start development server                  |
+| `mise dev-open`     | Start dev server and open browser         |
+| `mise build`        | Build static site for production          |
+| `mise preview`      | Preview production build                  |
+| `mise check`        | Type-check with svelte-check              |
+| `mise lint`         | Check code with ESLint and Prettier       |
+| `mise lint:check`   | Same as lint (alias)                      |
+| `mise format`       | Format code with Prettier (write changes) |
+| `mise format:check` | Check formatting (no changes)             |
+| `mise test`         | Run all tests (unit + E2E)                |
+| `mise test-unit`    | Run unit tests with Vitest                |
+| `mise test-e2e`     | Run E2E tests with Playwright             |
+| `mise ci`           | Run all CI checks                         |
+| `mise install`      | Install dependencies                      |
+| `mise sync`         | Sync SvelteKit types                      |
+
+All mise tasks execute commands directly using `pnpm exec`, ensuring consistent behavior across local development and CI/CD environments.
 
 ## Project Structure
 
