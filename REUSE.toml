@@ -33,7 +33,6 @@ path = [
     ".gitleaksignore",
     ".markdownlint.json",
     ".markdownlintignore",
-    ".npmrc",
     ".pre-commit-config.yaml",
     ".secrets.baseline",
     ".vale.ini",

@@ -29,7 +29,12 @@
         "vitest": "^3.2.4",
         "vitest-browser-svelte": "^1.1.0"
     },
+    "engines": {
+        "node": ">=22",
+        "pnpm": ">=10"
+    },
     "name": "fahrenheight",
+    "packageManager": "pnpm@10.18.3",
     "private": true,
     "scripts": {
         "build": "vite build",
