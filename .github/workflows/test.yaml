@@ -36,9 +36,6 @@ jobs:
               with:
                   install_args: --yes
 
-            - name: Install dependencies
-              run: mise run install
-
             - name: Sync SvelteKit
               run: mise run sync
 
@@ -48,11 +45,11 @@ jobs:
             - name: Run type checking
               run: mise run check
 
-            - name: Run unit tests
-              run: mise run test-unit -- --run
-
             - name: Install Playwright browsers
               run: pnpm exec playwright install --with-deps
+
+            - name: Run unit tests
+              run: mise run test-unit -- --run
 
             - name: Run E2E tests
               run: mise run test-e2e
