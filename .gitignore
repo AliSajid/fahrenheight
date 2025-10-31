@@ -26,4 +26,8 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# Ignore the VSCode settings folder
 .vscode/
+
+# Ensure the lib/ directory is not ignored
+!lib/
