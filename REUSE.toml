@@ -30,6 +30,7 @@ path = [
     ".prettierrc.json",
     ".prettierignore",
     ".gitignore",
+    "renovate.json",
     ".gitleaksignore",
     ".markdownlint.json",
     ".markdownlintignore",
