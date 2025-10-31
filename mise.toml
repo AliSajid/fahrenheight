@@ -2,7 +2,10 @@
 # https://mise.jdx.dev/
 
 [tools]
-node = "22"
+node = "22.20.0"
+pre-commit = "4.3.0"
+
+"ubi:cocogitto/cocogitto" = {version = "6.4.0", executable = "cog"}
 
 [env]
 NODE_ENV = "development"
