@@ -12,6 +12,8 @@ This is a static SvelteKit web application for temperature conversion and analys
 ## Technology Stack
 
 - **Framework**: SvelteKit 2.x with Svelte 5
+- **UI Kit**: Skeleton UI 4.x (@skeletonlabs/skeleton + @skeletonlabs/skeleton-svelte)
+- **Icons**: Lucide Svelte (lucide-svelte)
 - **Styling**: Tailwind CSS 4.x
 - **Build Tool**: Vite 7.x
 - **Package Manager**: pnpm
@@ -113,12 +115,18 @@ fahrenheight/
 - Effects: `$effect(() => { ... })`
 - Event handlers: Use `onclick` instead of `on:click`
 
-### Styling with Tailwind CSS
+### Styling with Skeleton UI and Tailwind CSS
 
-- Use Tailwind utility classes for all styling
-- Follow a consistent design system
-- Ensure responsive design with mobile-first approach
-- Use semantic color schemes (consider dark mode support)
+- **Use Skeleton UI components** for consistent UI elements (buttons, cards, forms, etc.)
+- **Skeleton UI Classes**:
+    - Typography: `h1`, `h2`, `h3` for headings
+    - Buttons: `btn`, `variant-filled-primary`, `variant-ghost-surface`, etc.
+    - Cards: `card`, `variant-glass-surface`, `variant-ghost`
+    - color tokens: `text-primary-500`, `text-surface-600-300-token` (dark mode aware)
+- **Icons**: Use Lucide Svelte components for all icons
+- **Tailwind utilities**: Use for spacing, layout, and custom styling
+- **Responsive design**: Mobile-first approach with Tailwind breakpoints
+- **Dark mode**: Skeleton UI provides automatic dark mode support via color tokens
 
 ### Type Safety
 
@@ -246,6 +254,7 @@ For the approximation graph, consider:
 - Use descriptive variable names
 - Add comments for complex calculations
 - Keep components focused and single-purpose
+- Use spaces over tabs
 
 ## GitHub Workflows
 

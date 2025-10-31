@@ -20,7 +20,7 @@ A static SvelteKit web application demonstrating:
 1. Dynamic bidirectional temperature conversion (Celsius ↔ Fahrenheit)
 2. Analysis of the approximation formula `(F - 32) / 2 ≈ C` vs the exact formula `(F - 32) * 5/9 = C`
 
-Built with SvelteKit 2.x, Svelte 5, and Tailwind CSS 4.x.
+Built with SvelteKit 2.x, Svelte 5, Tailwind CSS 4.x, and Skeleton UI.
 
 ## Prerequisites
 
@@ -166,6 +166,8 @@ src/
 ## Technology Stack
 
 - **Framework**: SvelteKit 2.x with Svelte 5
+- **UI Kit**: Skeleton UI 4.x
+- **Icons**: Lucide Svelte
 - **Styling**: Tailwind CSS 4.x
 - **Build**: Vite 7.x
 - **Adapter**: @sveltejs/adapter-static (Static Site Generation)
