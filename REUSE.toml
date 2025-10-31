@@ -33,6 +33,7 @@ path = [
     ".gitleaksignore",
     ".markdownlint.json",
     ".markdownlintignore",
+    ".hintrc",
     ".pre-commit-config.yaml",
     ".secrets.baseline",
     ".vale.ini",
@@ -60,7 +61,7 @@ SPDX-License-Identifier = "CC0-1.0"
 
 # Documentation files - MIT License
 [[annotations]]
-path = ["README.md", "MISE.md", ".github/copilot-instructions.md"]
+path = ["README.md", ".github/copilot-instructions.md"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
 SPDX-License-Identifier = "MIT"
