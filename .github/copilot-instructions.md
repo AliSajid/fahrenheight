@@ -338,3 +338,4 @@ All workflows use:
 - Prioritize accuracy in calculations and clarity in presentation
 - When implementing the graph, start simple and iterate
 - Do not add summary document files unless explicitly requested
+- When making changes, do not try to commit ot push changes on your own.
