@@ -6,7 +6,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
     webServer: {
-        command: 'npm run build && npm run preview',
+        command: 'mise run build && mise run preview',
         port: 4173
     },
     testDir: 'e2e'
