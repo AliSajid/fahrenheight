@@ -6,7 +6,7 @@ node = "22.20.0"
 pnpm = "10.20.0"
 pre-commit = "4.3.0"
 
-"ubi:cocogitto/cocogitto" = {version = "6.4.0", exe= "cog"}
+"ubi:cocogitto/cocogitto" = { version = "6.4.0", exe = "cog" }
 
 [env]
 NODE_ENV = "development"
@@ -74,3 +74,11 @@ run = "pnpm exec svelte-kit sync || echo ''"
 [tasks.ci]
 description = "Run CI checks (lint, type-check, test)"
 depends = ["lint:check", "format:check", "check", "test"]
+
+[tasks.tarball]
+description = "Create tarball from build directory (fahrenheight-{version}-{sha}.tgz)"
+run = "./.mise/tasks/create_tarball.sh"
+
+[tasks.package]
+description = "Build and create tarball (build → tarball)"
+depends = ["build", "tarball"]

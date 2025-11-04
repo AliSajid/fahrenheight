@@ -5,11 +5,18 @@ disable_changelog = false
 disable_bump_commit = false
 generate_mono_repository_global_tag = true
 generate_mono_repository_package_tags = true
-branch_whitelist = ["main", "next"]
+# branch_whitelist = ["main", "next"]
 skip_ci = "[skip ci]"
 skip_untracked = false
-pre_bump_hooks = []
-post_bump_hooks = []
+
+# Default hooks for main branch (stable releases)
+pre_bump_hooks = [
+    # Stage package.json if it was modified (version updates)
+    """sh -c 'if [[ -f package.json ]] && ! git diff --quiet package.json; then git add package.json; fi'""",
+]
+
+post_bump_hooks = ["git push origin main", "git push origin {{version}}"]
+
 pre_package_bump_hooks = []
 post_package_bump_hooks = []
 
@@ -21,6 +28,15 @@ post_package_bump_hooks = []
 path = "CHANGELOG.md"
 authors = []
 
-[bump_profiles]
+[bump_profiles.next]
+# Profile for prerelease versions on next branch
+pre_bump_hooks = [
+    # Ensure we're on the next branch
+    """sh -c '[[ "$(git rev-parse --abbrev-ref HEAD)" == "next" ]] || { echo "Error: next profile must be run from next branch"; exit 1; }'""",
+    # Stage package.json if it was modified (for prerelease version update)
+    """sh -c 'if [[ -f package.json ]] && git diff --quiet package.json; then true; else git add package.json || true; fi'""",
+]
+
+post_bump_hooks = ["git push origin next", "git push origin {{version}}"]
 
 [packages]
