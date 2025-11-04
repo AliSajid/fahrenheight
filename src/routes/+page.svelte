@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <script lang="ts">
-    import { Thermometer, LineChart, Github } from 'lucide-svelte';
+    import { Thermometer, LineChart, Github } from 'lucide-svelte'
 </script>
 
 <div class="container mx-auto px-4 py-12">
@@ -16,33 +16,56 @@ SPDX-License-Identifier: MIT
         </div>
         <h1 class="h1 mb-4">Fahrenheit Temperature Converter</h1>
         <p class="text-xl text-surface-600-300-token max-w-2xl mx-auto">
-            A static SvelteKit application demonstrating bidirectional temperature conversion and
-            approximation analysis
+            A static SvelteKit application demonstrating bidirectional
+            temperature conversion and approximation analysis
         </p>
     </section>
 
     <!-- Features Grid -->
     <section class="grid md:grid-cols-2 gap-8 mb-16">
         <div class="card variant-glass-surface p-6">
+            <!-- Image Placeholder -->
+            <div
+                class="w-full h-48 bg-surface-300-600-token rounded-lg mb-6 flex items-center justify-center"
+            >
+                <Thermometer
+                    class="w-16 h-16 text-surface-500-400-token opacity-50"
+                />
+            </div>
+
             <div class="flex items-center gap-4 mb-4">
                 <Thermometer class="w-8 h-8 text-primary-500" />
                 <h2 class="h2">Temperature Converter</h2>
             </div>
             <p class="text-surface-600-300-token">
-                Dynamic bidirectional temperature conversion between Celsius and Fahrenheit using exact
-                formulas: <code class="code">C = (F - 32) * 5/9</code> and
+                Dynamic bidirectional temperature conversion between Celsius and
+                Fahrenheit using exact formulas: <code class="code"
+                    >C = (F - 32) * 5/9</code
+                >
+                and
                 <code class="code">F = C * 9/5 + 32</code>
             </p>
         </div>
 
         <div class="card variant-glass-surface p-6">
+            <!-- Image Placeholder -->
+            <div
+                class="w-full h-48 bg-surface-300-600-token rounded-lg mb-6 flex items-center justify-center"
+            >
+                <LineChart
+                    class="w-16 h-16 text-surface-500-400-token opacity-50"
+                />
+            </div>
+
             <div class="flex items-center gap-4 mb-4">
                 <LineChart class="w-8 h-8 text-secondary-500" />
                 <h2 class="h2">Approximation Analysis</h2>
             </div>
             <p class="text-surface-600-300-token">
-                Visual comparison of the approximation formula <code class="code">(F - 32) / 2 ≈ C</code> vs
-                the exact formula, showing accuracy and error metrics across temperature ranges.
+                Visual comparison of the approximation formula <code
+                    class="code">(F - 32) / 2 ≈ C</code
+                > vs the exact formula, showing accuracy and error metrics across
+                temperature ranges.
             </p>
         </div>
     </section>
@@ -53,23 +76,35 @@ SPDX-License-Identifier: MIT
         <div class="grid md:grid-cols-3 gap-6">
             <div class="text-center">
                 <h3 class="h3 mb-2">SvelteKit 2.x</h3>
-                <p class="text-sm text-surface-600-300-token">With Svelte 5 runes</p>
+                <p class="text-sm text-surface-600-300-token">
+                    With Svelte 5 runes
+                </p>
             </div>
             <div class="text-center">
                 <h3 class="h3 mb-2">Tailwind CSS 4.x</h3>
-                <p class="text-sm text-surface-600-300-token">Modern utility-first styling</p>
+                <p class="text-sm text-surface-600-300-token">
+                    Modern utility-first styling
+                </p>
             </div>
             <div class="text-center">
                 <h3 class="h3 mb-2">Skeleton UI</h3>
-                <p class="text-sm text-surface-600-300-token">Beautiful component library</p>
+                <p class="text-sm text-surface-600-300-token">
+                    Beautiful component library
+                </p>
             </div>
         </div>
     </section>
 
     <!-- Call to Action -->
     <section class="text-center">
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a href="https://svelte.dev/docs/kit" class="btn variant-filled-primary" target="_blank">
+        <div
+            class="flex flex-col sm:flex-row gap-4 justify-center items-center"
+        >
+            <a
+                href="https://svelte.dev/docs/kit"
+                class="btn variant-filled-primary"
+                target="_blank"
+            >
                 Get Started
             </a>
             <a
