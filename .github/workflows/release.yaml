@@ -41,7 +41,7 @@ jobs:
               uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
               with:
                   gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-                  passphrase: ${{ secrets.GPG_KEY_PASSWORD }}
+                  passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
                   git_user_signingkey: true
                   git_commit_gpgsign: true
                   git_tag_gpgsign: true
@@ -97,10 +97,10 @@ jobs:
 
             - name: Sign tarball with GPG
               env:
-                  GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
+                  GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
               run: |
                   echo "Signing $TARBALL with GPG"
-                  echo "$GPG_KEY_PASSWORD" | gpg --batch --yes --passphrase-fd 0 \
+                  echo "$GPG_KEY_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
                       --detach-sign --armor "$TARBALL"
 
                   echo "GPG signature created: ${TARBALL}.asc"
@@ -110,10 +110,10 @@ jobs:
 
             - name: Sign checksums with GPG
               env:
-                  GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
+                  GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
               run: |
                   echo "Signing SHASUMS.txt with GPG"
-                  echo "$GPG_KEY_PASSWORD" | gpg --batch --yes --passphrase-fd 0 \
+                  echo "$GPG_KEY_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
                       --detach-sign --armor SHASUMS.txt
 
                   echo "GPG signature created: SHASUMS.txt.asc"

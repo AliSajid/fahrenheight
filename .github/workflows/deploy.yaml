@@ -1,9 +1,14 @@
-name: Deploy to GitHub Pages
+name: Deploy to Cloudflare Pages
 
 on:
     push:
+        branches-ignore:
+            - main
         tags:
             - 'v*'
+    pull_request:
+        branches:
+            - main
 
 permissions:
     contents: read
@@ -48,24 +53,7 @@ jobs:
             - name: Build static site
               run: mise run build
 
-            - name: Upload artifact
-              uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
-              with:
-                  path: ./build
-
-    deploy:
-        name: Deploy to GitHub Pages
-        needs: build
-        runs-on: ubuntu-latest
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
-        steps:
-            - name: Harden Runner
-              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
-              with:
-                  egress-policy: audit
-
-            - name: Deploy to GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+            - name: Upload to Cloudflare Pages
+              run: wrangler pages deploy ./build
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
