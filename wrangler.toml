@@ -6,6 +6,12 @@
 name = "fahrenheight"
 pages_build_output_dir = "build"
 compatibility_date = "2025-11-04"
+upload_source_maps = true
 
-[env]
-production = {}
+# Production environment (main branch)
+[env.production]
+
+# Preview environment for next branch
+# Note: Custom domain next.fahrenheight.banseljaj.dev must be configured
+# in Cloudflare Pages dashboard under Custom domains
+[env.next]
