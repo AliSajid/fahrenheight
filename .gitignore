@@ -9,6 +9,12 @@ node_modules
 /.svelte-kit
 /build
 
+# Release artifacts
+fahrenheight-*.tgz
+fahrenheight-*.tgz.sha256
+fahrenheight-*.tgz.sha512
+fahrenheight-*.tgz.asc
+
 # OS
 .DS_Store
 Thumbs.db
@@ -31,3 +37,6 @@ vite.config.ts.timestamp-*
 
 # Ensure the lib/ directory is not ignored
 !lib/
+
+# Temporary backup files
+*.bak

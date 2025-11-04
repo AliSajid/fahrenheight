@@ -1,0 +1,239 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - 'v*'
+
+permissions:
+    contents: write
+    id-token: write
+    attestations: write
+
+jobs:
+    release:
+        name: Create Release
+        runs-on: ubuntu-latest
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              with:
+                  disable-sudo: true
+                  egress-policy: block
+                  allowed-endpoints: >
+                      api.github.com:443
+                      github.com:443
+                      mise.jdx.dev:443
+                      objects.githubusercontent.com:443
+                      registry.npmjs.org:443
+                      uploads.github.com:443
+                      fulcio.sigstore.dev:443
+                      rekor.sigstore.dev:443
+                      tuf-repo-cdn.sigstore.dev:443
+                      keys.openpgp.org:443
+
+            - name: Checkout repository
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+              with:
+                  fetch-depth: 0
+
+            - name: Import GPG key
+              uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
+              with:
+                  gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.GPG_KEY_PASSWORD }}
+                  git_user_signingkey: true
+                  git_commit_gpgsign: true
+                  git_tag_gpgsign: true
+                  trust_level: ultimate
+
+            - name: Configure Git
+              run: |
+                  git config --global user.name "${{ vars.GIT_AUTHOR_NAME }}"
+                  git config --global user.email "${{ vars.GIT_AUTHOR_EMAIL }}"
+
+            - name: Install mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              with:
+                  install_args: --yes
+
+            - name: Install dependencies
+              run: mise run install
+
+            - name: Sync SvelteKit
+              run: mise run sync
+
+            - name: Build static site
+              run: mise run build
+
+            - name: Create release tarball
+              id: tarball
+              run: |
+                  # Use the mise tarball task which creates fahrenheight-{version}-{sha}.tgz
+                  TARBALL=$(mise run tarball)
+
+                  # Extract version from tag
+                  VERSION="${GITHUB_REF#refs/tags/}"
+
+                  echo "Created tarball: $TARBALL"
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
+                  echo "TARBALL=$TARBALL" >> $GITHUB_ENV
+                  echo "tarball=$TARBALL" >> $GITHUB_OUTPUT
+
+            - name: Consolidate checksums
+              run: |
+                  # The tarball script creates individual checksum files
+                  # Consolidate them into SHASUMS.txt for the release
+                  if [[ -f "${TARBALL}.sha256" ]]; then
+                      cat "${TARBALL}.sha256" > SHASUMS.txt
+                  fi
+
+                  if [[ -f "${TARBALL}.sha512" ]]; then
+                      cat "${TARBALL}.sha512" >> SHASUMS.txt
+                  fi
+
+                  echo "Consolidated checksums:"
+                  cat SHASUMS.txt
+
+            - name: Sign tarball with GPG
+              env:
+                  GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
+              run: |
+                  echo "Signing $TARBALL with GPG"
+                  echo "$GPG_KEY_PASSWORD" | gpg --batch --yes --passphrase-fd 0 \
+                      --detach-sign --armor "$TARBALL"
+
+                  echo "GPG signature created: ${TARBALL}.asc"
+
+                  # Verify signature
+                  gpg --verify "${TARBALL}.asc" "$TARBALL"
+
+            - name: Sign checksums with GPG
+              env:
+                  GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
+              run: |
+                  echo "Signing SHASUMS.txt with GPG"
+                  echo "$GPG_KEY_PASSWORD" | gpg --batch --yes --passphrase-fd 0 \
+                      --detach-sign --armor SHASUMS.txt
+
+                  echo "GPG signature created: SHASUMS.txt.asc"
+
+                  # Verify signature
+                  gpg --verify SHASUMS.txt.asc SHASUMS.txt
+
+            - name: Generate SLSA attestations
+              uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+              with:
+                  subject-path: |
+                      ${{ env.TARBALL }}
+                      SHASUMS.txt
+
+            - name: Generate changelog
+              id: changelog
+              run: |
+                  VERSION="${GITHUB_REF#refs/tags/}"
+                  BRANCH="${GITHUB_REF_NAME}"
+
+                  # Check if this is a prerelease
+                  if [[ "$VERSION" == *"-"* ]]; then
+                      IS_PRERELEASE=true
+                      echo "is_prerelease=true" >> $GITHUB_OUTPUT
+                  else
+                      IS_PRERELEASE=false
+                      echo "is_prerelease=false" >> $GITHUB_OUTPUT
+                  fi
+
+                  # Generate changelog using cog
+                  if command -v cog &> /dev/null; then
+                      PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+                      if [[ -n "$PREV_TAG" ]]; then
+                          cog changelog --at "$VERSION" "$PREV_TAG..$VERSION" > release_notes.md
+                      else
+                          cog changelog --at "$VERSION" > release_notes.md
+                      fi
+                  else
+                      # Fallback if cog not available
+                      echo "Release $VERSION" > release_notes.md
+                      echo "" >> release_notes.md
+                      echo "Built from branch: $BRANCH" >> release_notes.md
+                  fi
+
+                  # Add verification instructions
+                  cat >> release_notes.md << EOF
+
+                  ## Verification
+
+                  ### Verify GPG Signature
+
+                  \`\`\`bash
+                  # Download the release tarball and signature
+                  wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/\${TARBALL}
+                  wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/\${TARBALL}.asc
+
+                  # Import the public key (if not already imported)
+                  gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
+
+                  # Verify the signature
+                  gpg --verify \${TARBALL}.asc \${TARBALL}
+                  \`\`\`
+
+                  ### Verify Checksums
+
+                  \`\`\`bash
+                  # Download checksums
+                  wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/SHASUMS.txt
+
+                  # Verify SHA256
+                  sha256sum -c SHASUMS.txt
+                  \`\`\`
+
+                  ### Verify SLSA Attestation
+
+                  \`\`\`bash
+                  # Install GitHub CLI if not already installed
+                  # https://cli.github.com/
+
+                  # Verify attestation
+                  gh attestation verify \${TARBALL} --repo ${{ github.repository }}
+                  \`\`\`
+                  EOF
+
+                  echo "Release notes:"
+                  cat release_notes.md
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
+              with:
+                  tag_name: ${{ env.VERSION }}
+                  name: ${{ env.VERSION }}
+                  body_path: release_notes.md
+                  draft: false
+                  prerelease: ${{ steps.changelog.outputs.is_prerelease }}
+                  files: |
+                      ${{ env.TARBALL }}
+                      ${{ env.TARBALL }}.asc
+                      SHASUMS.txt
+                      SHASUMS.txt.asc
+                  fail_on_unmatched_files: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Release Summary
+              run: |
+                  VERSION="${GITHUB_REF#refs/tags/}"
+                  echo "## ✅ Release Created Successfully" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "**Version:** ${VERSION}" >> $GITHUB_STEP_SUMMARY
+                  echo "**Ref:** ${GITHUB_REF_NAME}" >> $GITHUB_STEP_SUMMARY
+                  echo "**Prerelease:** ${{ steps.changelog.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+                  echo "- 📦 Tarball: \`${{ env.TARBALL }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- 🔏 GPG Signature: \`${{ env.TARBALL }}.asc\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- 📋 Checksums: \`SHASUMS.txt\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- 🔏 Checksum Signature: \`SHASUMS.txt.asc\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- 🛡️ SLSA Attestations: Generated via GitHub" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Links" >> $GITHUB_STEP_SUMMARY
+                  echo "- [Release Page](https://github.com/${{ github.repository }}/releases/tag/${VERSION})" >> $GITHUB_STEP_SUMMARY
+                  echo "- [Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)" >> $GITHUB_STEP_SUMMARY
