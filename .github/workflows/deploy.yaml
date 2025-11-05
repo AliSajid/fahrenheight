@@ -82,7 +82,7 @@ jobs:
             - name: Deploy to Cloudflare Pages (Production)
               if: steps.deployment-type.outputs.type == 'production'
               run: |
-                  npx wrangler pages deploy \
+                  wrangler pages deploy \
                       --branch=main \
                       --commit-hash="${{ github.sha }}" \
                       --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
@@ -93,7 +93,7 @@ jobs:
             - name: Deploy to Cloudflare Pages (Preview - Next)
               if: steps.deployment-type.outputs.type == 'preview' && steps.deployment-type.outputs.branch-name == 'next'
               run: |
-                  npx wrangler pages deploy \
+                  wrangler pages deploy \
                       --branch=next \
                       --commit-hash="${{ github.sha }}" \
                       --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
@@ -104,7 +104,7 @@ jobs:
             - name: Deploy to Cloudflare Pages (Preview - Other)
               if: steps.deployment-type.outputs.type == 'preview' && steps.deployment-type.outputs.branch-name != 'next'
               run: |
-                  npx wrangler pages deploy \
+                  wrangler pages deploy \
                       --branch="${{ steps.deployment-type.outputs.branch-name }}" \
                       --commit-hash="${{ github.sha }}" \
                       --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
