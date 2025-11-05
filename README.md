@@ -186,8 +186,6 @@ This project uses GitHub Actions for continuous integration, deployment, and sec
 - **Security**: CodeQL analysis, Scorecard security checks, and dependency review
 - **Quality**: Linting, type-checking, and formatting validation
 
-See [docs/CLOUDFLARE_PAGES_DEPLOYMENT.md](docs/CLOUDFLARE_PAGES_DEPLOYMENT.md) for deployment documentation.
-
 ## Learn More
 
 - [SvelteKit Documentation](https://svelte.dev/docs/kit)
