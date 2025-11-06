@@ -2,8 +2,6 @@ name: Deploy to Cloudflare Pages
 
 on:
     push:
-    pull_request:
-        types: [closed]
         branches:
             - main
             - next
@@ -16,10 +14,6 @@ jobs:
     build:
         name: Build Static Site
         runs-on: ubuntu-latest
-        # Only run on push or on closed PRs that were merged
-        if: |
-            github.event_name == 'push' ||
-            (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
         outputs:
             deployment-type: ${{ steps.deployment-type.outputs.type }}
             branch-name: ${{ steps.deployment-type.outputs.branch-name }}
@@ -57,11 +51,8 @@ jobs:
             - name: Determine deployment type
               id: deployment-type
               run: |
-                  if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-                      BRANCH="${{ github.event.pull_request.base.ref }}"
-                  else
-                      BRANCH="${{ github.ref_name }}"
-                  fi
+                  # For pushes, use the actual branch name
+                  BRANCH="${{ github.ref_name }}"
 
                   echo "branch=$BRANCH" >> $GITHUB_OUTPUT
 
@@ -145,6 +136,7 @@ jobs:
               uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
               with:
                   name: build-artifact
+
             - name: Extract build artifact
               run: |
                   mkdir -p build
@@ -157,7 +149,7 @@ jobs:
                       --project-name=fahrenheight \
                       --branch=main \
                       --commit-hash="${{ github.sha }}" \
-                      --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
+                      --commit-message="${{ github.event.head_commit.message }}"
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -222,7 +214,7 @@ jobs:
                       --project-name=fahrenheight \
                       --branch=next \
                       --commit-hash="${{ github.sha }}" \
-                      --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
+                      --commit-message="${{ github.event.head_commit.message }}"
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -286,7 +278,7 @@ jobs:
                       --project-name=fahrenheight \
                       --branch="${{ needs.build.outputs.branch-name }}" \
                       --commit-hash="${{ github.sha }}" \
-                      --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
+                      --commit-message="${{ github.event.head_commit.message }}"
               env:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
