@@ -85,20 +85,6 @@ jobs:
                   retention-days: 1
                   compression-level: 0 # Already compressed
 
-    trigger-release:
-        name: Trigger Release Workflow
-        needs: build
-        if: |
-            needs.build.outputs.deployment-type == 'production' ||
-            needs.build.outputs.deployment-type == 'next'
-        runs-on: ubuntu-latest
-        steps:
-            - name: Trigger release workflow
-              run: |
-                  echo "Release workflow will be triggered by workflow_run event" >> $GITHUB_STEP_SUMMARY
-                  echo "Deployment type: ${{ needs.build.outputs.deployment-type }}" >> $GITHUB_STEP_SUMMARY
-                  echo "Branch: ${{ needs.build.outputs.target-branch }}" >> $GITHUB_STEP_SUMMARY
-
     deploy-production:
         name: Deploy to Production
         needs: build
@@ -292,3 +278,33 @@ jobs:
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "### 🌐 Preview URL" >> $GITHUB_STEP_SUMMARY
                   echo "Preview URL will be available in Cloudflare Pages dashboard" >> $GITHUB_STEP_SUMMARY
+
+    release-production:
+        name: Create Production Release
+        needs: [build, deploy-production]
+        if: needs.build.outputs.deployment-type == 'production'
+        uses: ./.github/workflows/release.yaml
+        secrets: inherit # pragma: allowlist secret
+        with:
+            branch: main
+            artifact-name: build-artifact
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+            actions: read
+
+    release-next:
+        name: Create Next Release
+        needs: [build, deploy-next]
+        if: needs.build.outputs.deployment-type == 'next'
+        uses: ./.github/workflows/release.yaml
+        secrets: inherit # pragma: allowlist secret
+        with:
+            branch: next
+            artifact-name: build-artifact
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+            actions: read

@@ -1,12 +1,24 @@
 name: Release
 
 on:
-    workflow_run:
-        workflows: ['Deploy to Cloudflare Pages']
-        types: [completed]
-        branches:
-            - main
-            - next
+    workflow_call:
+        inputs:
+            branch:
+                description: 'Branch name (main or next)'
+                required: true
+                type: string
+            artifact-name:
+                description: 'Name of the build artifact'
+                required: true
+                type: string
+                default: 'build-artifact'
+    workflow_dispatch:
+        inputs:
+            create-build:
+                description: 'Build the project before creating release'
+                required: false
+                type: boolean
+                default: true
 
 permissions:
     contents: write
@@ -15,15 +27,66 @@ permissions:
     actions: read
 
 jobs:
+    build-manual:
+        name: Build for Manual Release
+        runs-on: ubuntu-latest
+        if: github.event_name == 'workflow_dispatch' && inputs.create-build == true
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              with:
+                  disable-sudo: true
+                  egress-policy: block
+                  allowed-endpoints: >
+                      api.github.com:443
+                      github.com:443
+                      mise.jdx.dev:443
+                      objects.githubusercontent.com:443
+                      registry.npmjs.org:443
+
+            - name: Checkout repository
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Install mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              with:
+                  install_args: --yes
+
+            - name: Install dependencies
+              run: mise run install
+
+            - name: Sync SvelteKit
+              run: mise run sync
+
+            - name: Build static site
+              run: mise run build
+
+            - name: Create deployment artifact
+              run: |
+                  cd build
+                  zip -r ../build-artifact.zip .
+                  cd ..
+                  echo "📦 Created build artifact: $(du -h build-artifact.zip | cut -f1)" >> $GITHUB_STEP_SUMMARY
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+              with:
+                  name: build-artifact
+                  path: build-artifact.zip
+                  retention-days: 1
+                  compression-level: 0 # Already compressed
+
     release:
         name: Create Release
         runs-on: ubuntu-latest
+        needs: [build-manual]
+        if: |
+            always() &&
+            (needs.build-manual.result == 'success' || needs.build-manual.result == 'skipped')
         env:
             ARTIFACT: ''
             VERSION: ''
             RELEASE_NAME: ''
-        # Only run if the deploy workflow succeeded
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
         steps:
             - name: Harden Runner
               uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
@@ -46,26 +109,49 @@ jobs:
               uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
               with:
                   fetch-depth: 0
-                  ref: ${{ github.event.workflow_run.head_branch }}
+                  ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || inputs.branch }}
 
             - name: Install mise
               uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
               with:
                   install_args: --yes
 
-            - name: Download build artifact from deploy workflow
+            - name: Download build artifact
               uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
               with:
-                  name: build-artifact
-                  run-id: ${{ github.event.workflow_run.id }}
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  name: ${{ github.event_name == 'workflow_dispatch' && 'build-artifact' || inputs.artifact-name }}
 
             - name: Determine version and release type
               id: version
               run: |
-                  BRANCH="${{ github.event.workflow_run.head_branch }}"
+                  # Determine branch based on event type
+                  if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+                      BRANCH="${{ github.ref_name }}"
+                      IS_MANUAL=true
+                  else
+                      BRANCH="${{ inputs.branch }}"
+                      IS_MANUAL=false
+                  fi
 
-                  if [[ "$BRANCH" == "main" ]]; then
+                  # Get short commit hash for build metadata
+                  SHORT_SHA=$(git rev-parse --short HEAD)
+
+                  if [[ "$IS_MANUAL" == "true" ]]; then
+                      # For manual triggers, create a prerelease with build metadata
+                      BASE_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+                      # Remove 'v' prefix
+                      BASE_VERSION_NUM=${BASE_VERSION#v}
+                      IFS='.' read -ra VERSION_PARTS <<< "$BASE_VERSION_NUM"
+                      MAJOR=${VERSION_PARTS[0]}
+                      MINOR=${VERSION_PARTS[1]}
+                      PATCH=${VERSION_PARTS[2]%%[-+]*}
+                      NEXT_PATCH=$((PATCH + 1))
+                      TIMESTAMP=$(date +%Y%m%d%H%M%S)
+                      # Create version with prerelease and build metadata: v0.1.1-dev.20251106123456+abc1234
+                      VERSION="v${MAJOR}.${MINOR}.${NEXT_PATCH}-dev.${TIMESTAMP}+${SHORT_SHA}"
+                      IS_PRERELEASE=true
+                      RELEASE_NAME="fahrenheight-${VERSION}"
+                  elif [[ "$BRANCH" == "main" ]]; then
                       # For main branch, get the latest tag or create initial version
                       VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
                       IS_PRERELEASE=false
@@ -101,6 +187,7 @@ jobs:
                   echo "- **Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
                   echo "- **Branch:** $BRANCH" >> $GITHUB_STEP_SUMMARY
                   echo "- **Prerelease:** $IS_PRERELEASE" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Manual Trigger:** $IS_MANUAL" >> $GITHUB_STEP_SUMMARY
 
             - name: Rename build artifact
               run: |
@@ -173,15 +260,37 @@ jobs:
                   BRANCH="${{ steps.version.outputs.branch }}"
                   IS_PRERELEASE="${{ steps.version.outputs.is_prerelease }}"
                   ARTIFACT="${ARTIFACT}"
+                  IS_MANUAL="${{ github.event_name == 'workflow_dispatch' }}"
+
+                  # Get short commit hash for build metadata
+                  SHORT_SHA=$(git rev-parse --short HEAD)
 
                   # Get previous tag for changelog generation
                   PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
 
-                  # Generate changelog using mise
-                  if [[ -n "$PREV_TAG" ]]; then
-                      PREV_TAG="$PREV_TAG" mise run changelog > release_notes.md
+                  # Generate changelog using cog with appropriate options
+                  if [[ "$IS_MANUAL" == "true" ]]; then
+                      # For manual triggers, use --build option with short SHA
+                      if [[ -n "$PREV_TAG" ]]; then
+                          cog changelog --at "$VERSION" --build "$SHORT_SHA" "$PREV_TAG..$VERSION" > release_notes.md || {
+                              echo "# Release $VERSION" > release_notes.md
+                              echo "" >> release_notes.md
+                              echo "Manual release build from commit: \`$SHORT_SHA\`" >> release_notes.md
+                          }
+                      else
+                          cog changelog --at "$VERSION" --build "$SHORT_SHA" > release_notes.md || {
+                              echo "# Release $VERSION" > release_notes.md
+                              echo "" >> release_notes.md
+                              echo "Manual release build from commit: \`$SHORT_SHA\`" >> release_notes.md
+                          }
+                      fi
                   else
-                      mise run changelog > release_notes.md
+                      # For automated releases, use standard changelog generation
+                      if [[ -n "$PREV_TAG" ]]; then
+                          PREV_TAG="$PREV_TAG" mise run changelog > release_notes.md
+                      else
+                          mise run changelog > release_notes.md
+                      fi
                   fi
 
                   # Add verification instructions
