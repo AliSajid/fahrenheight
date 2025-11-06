@@ -272,13 +272,13 @@ jobs:
                   if [[ "$IS_MANUAL" == "true" ]]; then
                       # For manual triggers, use --build option with short SHA
                       if [[ -n "$PREV_TAG" ]]; then
-                          cog changelog --at "$VERSION" --build "$SHORT_SHA" "$PREV_TAG..$VERSION" > release_notes.md || {
+                          cog changelog --at "$VERSION"  "$PREV_TAG..$VERSION" > release_notes.md || {
                               echo "# Release $VERSION" > release_notes.md
                               echo "" >> release_notes.md
                               echo "Manual release build from commit: \`$SHORT_SHA\`" >> release_notes.md
                           }
                       else
-                          cog changelog --at "$VERSION" --build "$SHORT_SHA" > release_notes.md || {
+                          cog changelog --at "$VERSION"  > release_notes.md || {
                               echo "# Release $VERSION" > release_notes.md
                               echo "" >> release_notes.md
                               echo "Manual release build from commit: \`$SHORT_SHA\`" >> release_notes.md
