@@ -12,18 +12,18 @@ permissions:
     contents: read
     pull-requests: read
 
-concurrency:
-    group: cloudflare-pages-deploy-${{ github.ref }}
-    cancel-in-progress: true
-
 jobs:
-    deploy:
-        name: Deploy to Cloudflare Pages
+    build:
+        name: Build Static Site
         runs-on: ubuntu-latest
         # Only run on push or on closed PRs that were merged
         if: |
             github.event_name == 'push' ||
             (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+        outputs:
+            deployment-type: ${{ steps.deployment-type.outputs.type }}
+            branch-name: ${{ steps.deployment-type.outputs.branch-name }}
+            target-branch: ${{ steps.deployment-type.outputs.branch }}
         steps:
             - name: Harden Runner
               uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
@@ -36,7 +36,6 @@ jobs:
                       mise.jdx.dev:443
                       objects.githubusercontent.com:443
                       registry.npmjs.org:443
-                      api.cloudflare.com:443
 
             - name: Checkout repository
               uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -68,44 +67,95 @@ jobs:
 
                   if [[ "$BRANCH" == "main" ]]; then
                       echo "type=production" >> $GITHUB_OUTPUT
-                      echo "📦 Deploying to production" >> $GITHUB_STEP_SUMMARY
+                      echo "branch-name=main" >> $GITHUB_OUTPUT
+                      echo "📦 Build complete for production deployment" >> $GITHUB_STEP_SUMMARY
                   elif [[ "$BRANCH" == "next" ]]; then
-                      echo "type=preview" >> $GITHUB_OUTPUT
+                      echo "type=next" >> $GITHUB_OUTPUT
                       echo "branch-name=next" >> $GITHUB_OUTPUT
-                      echo "📦 Deploying to preview branch: next" >> $GITHUB_STEP_SUMMARY
+                      echo "📦 Build complete for next preview deployment" >> $GITHUB_STEP_SUMMARY
                   else
                       echo "type=preview" >> $GITHUB_OUTPUT
                       echo "branch-name=$BRANCH" >> $GITHUB_OUTPUT
-                      echo "📦 Deploying to preview branch: $BRANCH" >> $GITHUB_STEP_SUMMARY
+                      echo "📦 Build complete for preview deployment: $BRANCH" >> $GITHUB_STEP_SUMMARY
                   fi
 
-            - name: Deploy to Cloudflare Pages (Production)
-              if: steps.deployment-type.outputs.type == 'production'
+            - name: Create deployment artifact
               run: |
-                  wrangler pages deploy \
+                  cd build
+                  zip -r ../build-artifact.zip .
+                  cd ..
+                  echo "📦 Created build artifact: $(du -h build-artifact.zip | cut -f1)" >> $GITHUB_STEP_SUMMARY
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+              with:
+                  name: build-artifact
+                  path: build-artifact.zip
+                  retention-days: 1
+                  compression-level: 0 # Already compressed
+
+    trigger-release:
+        name: Trigger Release Workflow
+        needs: build
+        if: |
+            needs.build.outputs.deployment-type == 'production' ||
+            needs.build.outputs.deployment-type == 'next'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Trigger release workflow
+              run: |
+                  echo "Release workflow will be triggered by workflow_run event" >> $GITHUB_STEP_SUMMARY
+                  echo "Deployment type: ${{ needs.build.outputs.deployment-type }}" >> $GITHUB_STEP_SUMMARY
+                  echo "Branch: ${{ needs.build.outputs.target-branch }}" >> $GITHUB_STEP_SUMMARY
+
+    deploy-production:
+        name: Deploy to Production
+        needs: build
+        if: needs.build.outputs.deployment-type == 'production'
+        runs-on: ubuntu-latest
+        environment:
+            name: production
+            url: https://fahrenheight.pages.dev
+        concurrency:
+            group: cloudflare-pages-production
+            cancel-in-progress: false
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              with:
+                  disable-sudo: true
+                  egress-policy: block
+                  allowed-endpoints: >
+                      api.github.com:443
+                      github.com:443
+                      api.cloudflare.com:443
+                      registry.npmjs.org:443
+                      objects.githubusercontent.com:443
+
+            - name: Install mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              with:
+                  install_args: --yes
+                  mise_toml: |
+                      [tools]
+                      node = "22"
+                      "npm:wrangler" = "4.45.4"
+
+            - name: Download build artifact
+              uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+              with:
+                  name: build-artifact
+            - name: Extract build artifact
+              run: |
+                  mkdir -p build
+                  unzip -q build-artifact.zip -d build
+                  echo "📦 Extracted build artifact" >> $GITHUB_STEP_SUMMARY
+
+            - name: Deploy to Cloudflare Pages
+              run: |
+                  wrangler pages deploy build \
+                      --project-name=fahrenheight \
                       --branch=main \
-                      --commit-hash="${{ github.sha }}" \
-                      --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
-              env:
-                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-            - name: Deploy to Cloudflare Pages (Preview - Next)
-              if: steps.deployment-type.outputs.type == 'preview' && steps.deployment-type.outputs.branch-name == 'next'
-              run: |
-                  wrangler pages deploy \
-                      --branch=next \
-                      --commit-hash="${{ github.sha }}" \
-                      --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
-              env:
-                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-            - name: Deploy to Cloudflare Pages (Preview - Other)
-              if: steps.deployment-type.outputs.type == 'preview' && steps.deployment-type.outputs.branch-name != 'next'
-              run: |
-                  wrangler pages deploy \
-                      --branch="${{ steps.deployment-type.outputs.branch-name }}" \
                       --commit-hash="${{ github.sha }}" \
                       --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
               env:
@@ -114,20 +164,139 @@ jobs:
 
             - name: Deployment Summary
               run: |
-                  echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
+                  echo "## ✅ Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "**Branch:** ${{ steps.deployment-type.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
-                  echo "**Type:** ${{ steps.deployment-type.outputs.type }}" >> $GITHUB_STEP_SUMMARY
+                  echo "**Branch:** ${{ needs.build.outputs.target-branch }}" >> $GITHUB_STEP_SUMMARY
                   echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 🌐 Production URL" >> $GITHUB_STEP_SUMMARY
+                  echo "[https://fahrenheight.pages.dev](https://fahrenheight.pages.dev)" >> $GITHUB_STEP_SUMMARY
 
-                  if [[ "${{ steps.deployment-type.outputs.type }}" == "production" ]]; then
-                      echo "### 🌐 Production URL" >> $GITHUB_STEP_SUMMARY
-                      echo "[https://fahrenheight.pages.dev](https://fahrenheight.pages.dev)" >> $GITHUB_STEP_SUMMARY
-                  elif [[ "${{ steps.deployment-type.outputs.branch-name }}" == "next" ]]; then
-                      echo "### 🌐 Preview URL (Fixed)" >> $GITHUB_STEP_SUMMARY
-                      echo "[https://next.fahrenheight.pages.dev](https://next.fahrenheight.pages.dev)" >> $GITHUB_STEP_SUMMARY
-                  else
-                      echo "### 🌐 Preview URL" >> $GITHUB_STEP_SUMMARY
-                      echo "Preview URL will be available in Cloudflare Pages dashboard" >> $GITHUB_STEP_SUMMARY
-                  fi
+    deploy-next:
+        name: Deploy to Next Preview
+        needs: build
+        if: needs.build.outputs.deployment-type == 'next'
+        runs-on: ubuntu-latest
+        environment:
+            name: next
+            url: https://next.fahrenheight.pages.dev
+        concurrency:
+            group: cloudflare-pages-next
+            cancel-in-progress: false
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              with:
+                  disable-sudo: true
+                  egress-policy: block
+                  allowed-endpoints: >
+                      api.github.com:443
+                      github.com:443
+                      api.cloudflare.com:443
+                      registry.npmjs.org:443
+                      objects.githubusercontent.com:443
+
+            - name: Install mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              with:
+                  install_args: --yes
+                  mise_toml: |
+                      [tools]
+                      node = "22"
+                      "npm:wrangler" = "4.45.4"
+
+            - name: Download build artifact
+              uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+              with:
+                  name: build-artifact
+
+            - name: Extract build artifact
+              run: |
+                  mkdir -p build
+                  unzip -q build-artifact.zip -d build
+                  echo "📦 Extracted build artifact" >> $GITHUB_STEP_SUMMARY
+
+            - name: Deploy to Cloudflare Pages
+              run: |
+                  wrangler pages deploy build \
+                      --project-name=fahrenheight \
+                      --branch=next \
+                      --commit-hash="${{ github.sha }}" \
+                      --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+            - name: Deployment Summary
+              run: |
+                  echo "## ✅ Next Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "**Branch:** ${{ needs.build.outputs.target-branch }}" >> $GITHUB_STEP_SUMMARY
+                  echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 🌐 Preview URL (Fixed)" >> $GITHUB_STEP_SUMMARY
+                  echo "[https://next.fahrenheight.pages.dev](https://next.fahrenheight.pages.dev)" >> $GITHUB_STEP_SUMMARY
+
+    deploy-preview:
+        name: Deploy to Preview
+        needs: build
+        if: needs.build.outputs.deployment-type == 'preview'
+        runs-on: ubuntu-latest
+        environment:
+            name: preview-${{ needs.build.outputs.branch-name }}
+        concurrency:
+            group: cloudflare-pages-preview-${{ needs.build.outputs.branch-name }}
+            cancel-in-progress: false
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              with:
+                  disable-sudo: true
+                  egress-policy: block
+                  allowed-endpoints: >
+                      api.github.com:443
+                      github.com:443
+                      api.cloudflare.com:443
+                      registry.npmjs.org:443
+                      objects.githubusercontent.com:443
+
+            - name: Install mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              with:
+                  install_args: --yes
+                  mise_toml: |
+                      [tools]
+                      node = "22"
+                      "npm:wrangler" = "4.45.4"
+
+            - name: Download build artifact
+              uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+              with:
+                  name: build-artifact
+
+            - name: Extract build artifact
+              run: |
+                  mkdir -p build
+                  unzip -q build-artifact.zip -d build
+                  echo "📦 Extracted build artifact" >> $GITHUB_STEP_SUMMARY
+
+            - name: Deploy to Cloudflare Pages
+              run: |
+                  wrangler pages deploy build \
+                      --project-name=fahrenheight \
+                      --branch="${{ needs.build.outputs.branch-name }}" \
+                      --commit-hash="${{ github.sha }}" \
+                      --commit-message="${{ github.event.head_commit.message || github.event.pull_request.title }}"
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+            - name: Deployment Summary
+              run: |
+                  echo "## ✅ Preview Deployment Complete" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "**Branch:** ${{ needs.build.outputs.branch-name }}" >> $GITHUB_STEP_SUMMARY
+                  echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 🌐 Preview URL" >> $GITHUB_STEP_SUMMARY
+                  echo "Preview URL will be available in Cloudflare Pages dashboard" >> $GITHUB_STEP_SUMMARY

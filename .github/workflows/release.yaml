@@ -1,19 +1,29 @@
 name: Release
 
 on:
-    push:
-        tags:
-            - 'v*'
+    workflow_run:
+        workflows: ['Deploy to Cloudflare Pages']
+        types: [completed]
+        branches:
+            - main
+            - next
 
 permissions:
     contents: write
     id-token: write
     attestations: write
+    actions: read
 
 jobs:
     release:
         name: Create Release
         runs-on: ubuntu-latest
+        env:
+            ARTIFACT: ''
+            VERSION: ''
+            RELEASE_NAME: ''
+        # Only run if the deploy workflow succeeded
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
         steps:
             - name: Harden Runner
               uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
@@ -36,6 +46,78 @@ jobs:
               uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
               with:
                   fetch-depth: 0
+                  ref: ${{ github.event.workflow_run.head_branch }}
+
+            - name: Install mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              with:
+                  install_args: --yes
+
+            - name: Download build artifact from deploy workflow
+              uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+              with:
+                  name: build-artifact
+                  run-id: ${{ github.event.workflow_run.id }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Determine version and release type
+              id: version
+              run: |
+                  BRANCH="${{ github.event.workflow_run.head_branch }}"
+
+                  if [[ "$BRANCH" == "main" ]]; then
+                      # For main branch, get the latest tag or create initial version
+                      VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+                      IS_PRERELEASE=false
+                      RELEASE_NAME="fahrenheight-${VERSION}"
+                  elif [[ "$BRANCH" == "next" ]]; then
+                      # For next branch, create a prerelease version
+                      BASE_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+                      # Remove 'v' prefix, increment patch, add prerelease
+                      BASE_VERSION_NUM=${BASE_VERSION#v}
+                      IFS='.' read -ra VERSION_PARTS <<< "$BASE_VERSION_NUM"
+                      MAJOR=${VERSION_PARTS[0]}
+                      MINOR=${VERSION_PARTS[1]}
+                      PATCH=${VERSION_PARTS[2]%%[-+]*}
+                      NEXT_PATCH=$((PATCH + 1))
+                      TIMESTAMP=$(date +%Y%m%d%H%M%S)
+                      VERSION="v${MAJOR}.${MINOR}.${NEXT_PATCH}-next.${TIMESTAMP}"
+                      IS_PRERELEASE=true
+                      RELEASE_NAME="fahrenheight-${VERSION}"
+                  else
+                      echo "Error: Unexpected branch $BRANCH"
+                      exit 1
+                  fi
+
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+                  echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+                  echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
+                  echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+
+                  echo "## 📦 Release Information" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Branch:** $BRANCH" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Prerelease:** $IS_PRERELEASE" >> $GITHUB_STEP_SUMMARY
+
+            - name: Rename build artifact
+              run: |
+                  # Rename the zip file to include version
+                  mv build-artifact.zip "${RELEASE_NAME}.zip"
+                  echo "ARTIFACT=${RELEASE_NAME}.zip" >> $GITHUB_ENV
+                  echo "Renamed artifact to: ${RELEASE_NAME}.zip"
+
+            - name: Create checksums
+              run: |
+                  # Use mise to create checksums
+                  mise run create-checksums "${RELEASE_NAME}.zip"
+
+                  echo "## 📋 Checksums Created" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  cat SHA256SUMS.txt >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
 
             - name: Import GPG key
               uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
@@ -47,115 +129,59 @@ jobs:
                   git_tag_gpgsign: true
                   trust_level: ultimate
 
-            - name: Configure Git
-              run: |
-                  git config --global user.name "${{ vars.GIT_AUTHOR_NAME }}"
-                  git config --global user.email "${{ vars.GIT_AUTHOR_EMAIL }}"
-
-            - name: Install mise
-              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
-              with:
-                  install_args: --yes
-
-            - name: Install dependencies
-              run: mise run install
-
-            - name: Sync SvelteKit
-              run: mise run sync
-
-            - name: Build static site
-              run: mise run build
-
-            - name: Create release tarball
-              id: tarball
-              run: |
-                  # Use the mise tarball task which creates fahrenheight-{version}-{sha}.tgz
-                  TARBALL=$(mise run tarball)
-
-                  # Extract version from tag
-                  VERSION="${GITHUB_REF#refs/tags/}"
-
-                  echo "Created tarball: $TARBALL"
-                  echo "VERSION=$VERSION" >> $GITHUB_ENV
-                  echo "TARBALL=$TARBALL" >> $GITHUB_ENV
-                  echo "tarball=$TARBALL" >> $GITHUB_OUTPUT
-
-            - name: Consolidate checksums
-              run: |
-                  # The tarball script creates individual checksum files
-                  # Consolidate them into SHASUMS.txt for the release
-                  if [[ -f "${TARBALL}.sha256" ]]; then
-                      cat "${TARBALL}.sha256" > SHASUMS.txt
-                  fi
-
-                  if [[ -f "${TARBALL}.sha512" ]]; then
-                      cat "${TARBALL}.sha512" >> SHASUMS.txt
-                  fi
-
-                  echo "Consolidated checksums:"
-                  cat SHASUMS.txt
-
-            - name: Sign tarball with GPG
+            - name: Sign artifact with GPG
               env:
                   GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
               run: |
-                  echo "Signing $TARBALL with GPG"
+                  echo "Signing ${ARTIFACT} with GPG"
                   echo "$GPG_KEY_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
-                      --detach-sign --armor "$TARBALL"
+                      --detach-sign --armor "${ARTIFACT}"
 
-                  echo "GPG signature created: ${TARBALL}.asc"
+                  echo "GPG signature created: ${ARTIFACT}.asc"
 
                   # Verify signature
-                  gpg --verify "${TARBALL}.asc" "$TARBALL"
+                  gpg --verify "${ARTIFACT}.asc" "${ARTIFACT}"
+
+                  echo "## 🔏 GPG Signature Verified" >> $GITHUB_STEP_SUMMARY
 
             - name: Sign checksums with GPG
               env:
                   GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
               run: |
-                  echo "Signing SHASUMS.txt with GPG"
+                  echo "Signing SHA256SUMS.txt with GPG"
                   echo "$GPG_KEY_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 \
-                      --detach-sign --armor SHASUMS.txt
+                      --detach-sign --armor SHA256SUMS.txt
 
-                  echo "GPG signature created: SHASUMS.txt.asc"
+                  echo "GPG signature created: SHA256SUMS.txt.asc"
 
                   # Verify signature
-                  gpg --verify SHASUMS.txt.asc SHASUMS.txt
+                  gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt
+
+                  echo "## 🔏 Checksum Signature Verified" >> $GITHUB_STEP_SUMMARY
 
             - name: Generate SLSA attestations
               uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
               with:
                   subject-path: |
-                      ${{ env.TARBALL }}
-                      SHASUMS.txt
+                      ${{ env.ARTIFACT }}
+                      SHA256SUMS.txt
 
             - name: Generate changelog
               id: changelog
               run: |
-                  VERSION="${GITHUB_REF#refs/tags/}"
-                  BRANCH="${GITHUB_REF_NAME}"
+                  VERSION="${{ steps.version.outputs.version }}"
+                  BRANCH="${{ steps.version.outputs.branch }}"
+                  IS_PRERELEASE="${{ steps.version.outputs.is_prerelease }}"
+                  ARTIFACT="${ARTIFACT}"
 
-                  # Check if this is a prerelease
-                  if [[ "$VERSION" == *"-"* ]]; then
-                      IS_PRERELEASE=true
-                      echo "is_prerelease=true" >> $GITHUB_OUTPUT
-                  else
-                      IS_PRERELEASE=false
-                      echo "is_prerelease=false" >> $GITHUB_OUTPUT
-                  fi
+                  # Get previous tag for changelog generation
+                  PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
 
-                  # Generate changelog using cog
-                  if command -v cog &> /dev/null; then
-                      PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-                      if [[ -n "$PREV_TAG" ]]; then
-                          cog changelog --at "$VERSION" "$PREV_TAG..$VERSION" > release_notes.md
-                      else
-                          cog changelog --at "$VERSION" > release_notes.md
-                      fi
+                  # Generate changelog using mise
+                  if [[ -n "$PREV_TAG" ]]; then
+                      PREV_TAG="$PREV_TAG" mise run changelog > release_notes.md
                   else
-                      # Fallback if cog not available
-                      echo "Release $VERSION" > release_notes.md
-                      echo "" >> release_notes.md
-                      echo "Built from branch: $BRANCH" >> release_notes.md
+                      mise run changelog > release_notes.md
                   fi
 
                   # Add verification instructions
@@ -166,25 +192,25 @@ jobs:
                   ### Verify GPG Signature
 
                   \`\`\`bash
-                  # Download the release tarball and signature
-                  wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/\${TARBALL}
-                  wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/\${TARBALL}.asc
+                  # Download the release artifact and signature
+                  wget https://github.com/${{ github.repository }}/releases/download/\${VERSION}/\${ARTIFACT}
+                  wget https://github.com/${{ github.repository }}/releases/download/\${VERSION}/\${ARTIFACT}.asc
 
                   # Import the public key (if not already imported)
                   gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
 
                   # Verify the signature
-                  gpg --verify \${TARBALL}.asc \${TARBALL}
+                  gpg --verify \${ARTIFACT}.asc \${ARTIFACT}
                   \`\`\`
 
                   ### Verify Checksums
 
                   \`\`\`bash
                   # Download checksums
-                  wget https://github.com/${{ github.repository }}/releases/download/${VERSION}/SHASUMS.txt
+                  wget https://github.com/${{ github.repository }}/releases/download/\${VERSION}/SHA256SUMS.txt
 
                   # Verify SHA256
-                  sha256sum -c SHASUMS.txt
+                  sha256sum -c SHA256SUMS.txt
                   \`\`\`
 
                   ### Verify SLSA Attestation
@@ -194,44 +220,47 @@ jobs:
                   # https://cli.github.com/
 
                   # Verify attestation
-                  gh attestation verify \${TARBALL} --repo ${{ github.repository }}
+                  gh attestation verify \${ARTIFACT} --repo ${{ github.repository }}
                   \`\`\`
                   EOF
 
-                  echo "Release notes:"
-                  cat release_notes.md
+                  echo "## 📝 Changelog Generated" >> $GITHUB_STEP_SUMMARY
+                  echo "Release notes created for version: $VERSION" >> $GITHUB_STEP_SUMMARY
 
             - name: Create GitHub Release
               uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
               with:
-                  tag_name: ${{ env.VERSION }}
-                  name: ${{ env.VERSION }}
+                  tag_name: ${{ steps.version.outputs.version }}
+                  name: ${{ steps.version.outputs.release_name }}
                   body_path: release_notes.md
                   draft: false
-                  prerelease: ${{ steps.changelog.outputs.is_prerelease }}
+                  prerelease: ${{ steps.version.outputs.is_prerelease }}
                   files: |
-                      ${{ env.TARBALL }}
-                      ${{ env.TARBALL }}.asc
-                      SHASUMS.txt
-                      SHASUMS.txt.asc
+                      ${{ env.ARTIFACT }}
+                      ${{ env.ARTIFACT }}.asc
+                      SHA256SUMS.txt
+                      SHA256SUMS.txt.asc
                   fail_on_unmatched_files: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Release Summary
               run: |
-                  VERSION="${GITHUB_REF#refs/tags/}"
+                  VERSION="${{ steps.version.outputs.version }}"
+                  BRANCH="${{ steps.version.outputs.branch }}"
+                  IS_PRERELEASE="${{ steps.version.outputs.is_prerelease }}"
+
                   echo "## ✅ Release Created Successfully" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "**Version:** ${VERSION}" >> $GITHUB_STEP_SUMMARY
-                  echo "**Ref:** ${GITHUB_REF_NAME}" >> $GITHUB_STEP_SUMMARY
-                  echo "**Prerelease:** ${{ steps.changelog.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
+                  echo "**Branch:** ${BRANCH}" >> $GITHUB_STEP_SUMMARY
+                  echo "**Prerelease:** ${IS_PRERELEASE}" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
-                  echo "- 📦 Tarball: \`${{ env.TARBALL }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "- 🔏 GPG Signature: \`${{ env.TARBALL }}.asc\`" >> $GITHUB_STEP_SUMMARY
-                  echo "- 📋 Checksums: \`SHASUMS.txt\`" >> $GITHUB_STEP_SUMMARY
-                  echo "- 🔏 Checksum Signature: \`SHASUMS.txt.asc\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- 📦 Release Artifact: \`${ARTIFACT}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- 🔏 GPG Signature: \`${ARTIFACT}.asc\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- 📋 Checksums: \`SHA256SUMS.txt\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- 🔏 Checksum Signature: \`SHA256SUMS.txt.asc\`" >> $GITHUB_STEP_SUMMARY
                   echo "- 🛡️ SLSA Attestations: Generated via GitHub" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "### Links" >> $GITHUB_STEP_SUMMARY

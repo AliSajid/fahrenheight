@@ -76,3 +76,50 @@ run = "pnpm exec svelte-kit sync || echo ''"
 [tasks.ci]
 description = "Run CI checks (lint, type-check, test)"
 depends = ["lint:check", "format:check", "check", "test"]
+
+[tasks.changelog]
+description = "Generate changelog for current version"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="${VERSION:-latest}"
+PREV_TAG="${PREV_TAG:-}"
+
+if [[ "$VERSION" == "latest" ]]; then
+    VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+fi
+
+if [[ -n "$PREV_TAG" ]]; then
+    cog changelog --at "$VERSION" "${PREV_TAG}..${VERSION}"
+else
+    PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+    if [[ -n "$PREV" ]]; then
+        cog changelog --at "$VERSION" "${PREV}..${VERSION}"
+    else
+        cog changelog --at "$VERSION"
+    fi
+fi
+"""
+
+[tasks.create-checksums]
+description = "Create SHA256 checksums for a file"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+FILE="${1:?Usage: mise run create-checksums <file>}"
+
+if [[ ! -f "$FILE" ]]; then
+    echo "Error: File $FILE not found"
+    exit 1
+fi
+
+echo "Creating checksum for: $FILE"
+
+# Create SHA256 checksum
+sha256sum "$FILE" | tee SHA256SUMS.txt
+
+echo "Checksum created:"
+cat SHA256SUMS.txt
+"""
