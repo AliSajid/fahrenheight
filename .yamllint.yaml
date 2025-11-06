@@ -3,7 +3,7 @@ extends: default
 rules:
     line-length:
         max: 150
-        ignore: |
+        ignore: >-
             *-lock.yaml
     document-start: disable
     truthy:
