@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 exclude: '^dist/.*$'
+default_stages:
+    - pre-commit
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v6.0.0
@@ -48,6 +50,10 @@ repos:
       rev: v1.5.0
       hooks:
           - id: detect-secrets
+            stages:
+                - pre-commit
+                - pre-push
+                - commit-msg
             args:
                 - '--baseline'
                 - '.secrets.baseline'
@@ -64,6 +70,8 @@ repos:
       rev: v8.27.0
       hooks:
           - id: gitleaks
+            stages:
+                - pre-push
 
     - repo: local
       hooks:
@@ -74,11 +82,15 @@ repos:
             exclude: '^dist/.*$'
             pass_filenames: false
           - id: eslint
+            stages:
+                - pre-push
             name: eslint & prettier (lint check)
             entry: mise run lint:check
             language: system
             pass_filenames: false
           - id: cog check
+            stages:
+                - commit-msg
             name: Cog Check
             entry: cog check
             language: system
