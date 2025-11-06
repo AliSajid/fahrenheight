@@ -22,34 +22,10 @@ repos:
           - id: mixed-line-ending
             args:
                 - --fix=no
-          - id: pretty-format-json
-            args:
-                - --indent=4
-                - --autofix
           - id: trailing-whitespace
             args:
                 - --markdown-linebreak-ext=md
           - id: check-added-large-files
-
-    - repo: https://github.com/compilerla/conventional-pre-commit
-      rev: v4.3.0
-      hooks:
-          - id: conventional-pre-commit
-            args:
-                - build
-                - chore
-                - ci
-                - docs
-                - feat
-                - fix
-                - perf
-                - refactor
-                - revert
-                - style
-                - test
-                - bump
-            stages:
-                - commit-msg
 
     - repo: https://github.com/Lucas-C/pre-commit-hooks
       rev: v1.5.5
@@ -58,6 +34,7 @@ repos:
           - id: remove-crlf
           - id: forbid-tabs
           - id: remove-tabs
+
     - repo: https://github.com/adrienverge/yamllint
       rev: v1.37.1
       hooks:
@@ -66,14 +43,6 @@ repos:
                 - --config=$(pwd)/.yamllint.yml
             stages:
                 - commit-msg
-
-    - repo: https://github.com/igorshubovych/markdownlint-cli
-      rev: v0.45.0
-      hooks:
-          - id: markdownlint
-            args:
-                - --ignore
-                - CHANGELOG.md
 
     - repo: https://github.com/Yelp/detect-secrets
       rev: v1.5.0
@@ -95,11 +64,12 @@ repos:
       rev: v8.27.0
       hooks:
           - id: gitleaks
+
     - repo: local
       hooks:
           - id: prettier
-            name: prettier (format check)
-            entry: mise run format:check
+            name: prettier
+            entry: mise run format
             language: system
             exclude: '^dist/.*$'
             pass_filenames: false
@@ -113,10 +83,12 @@ repos:
             entry: cog check
             language: system
             pass_filenames: false
+
     - repo: https://github.com/fsfe/reuse-tool
       rev: 'v5.1.1'
       hooks:
           - id: reuse
+
     - repo: https://github.com/renovatebot/pre-commit-hooks
       rev: 41.159.4
       hooks:

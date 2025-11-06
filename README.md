@@ -1,7 +1,7 @@
 # Fahrenheit Temperature Converter
 
 [![Test and Check](https://github.com/AliSajid/fahrenheight/actions/workflows/test.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/test.yaml)
-[![Deploy to GitHub Pages](https://github.com/AliSajid/fahrenheight/actions/workflows/deploy.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/deploy.yaml)
+[![Deploy to Cloudflare Pages](https://github.com/AliSajid/fahrenheight/actions/workflows/deploy.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/deploy.yaml)
 [![CodeQL](https://github.com/AliSajid/fahrenheight/actions/workflows/codeql.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/codeql.yaml)
 [![Scorecard](https://github.com/AliSajid/fahrenheight/actions/workflows/scorecard.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/scorecard.yaml)
 [![Dependency Review](https://github.com/AliSajid/fahrenheight/actions/workflows/dependency-review.yaml/badge.svg)](https://github.com/AliSajid/fahrenheight/actions/workflows/dependency-review.yaml)
@@ -179,11 +179,12 @@ src/
 This project uses GitHub Actions for continuous integration, deployment, and security scanning:
 
 - **Testing**: Automated tests run on every push and pull request
-- **Deployment**: Automatic deployment to GitHub Pages on push to `main`
+- **Deployment**: Cloudflare Pages deployment via Wrangler CLI
+  - Production: `main` branch → `https://fahrenheight.pages.dev`
+  - Preview (Next): `next` branch → `https://next.fahrenheight.pages.dev`
+  - Preview (Other): Feature branches → Auto-generated preview URLs
 - **Security**: CodeQL analysis, Scorecard security checks, and dependency review
 - **Quality**: Linting, type-checking, and formatting validation
-
-See [WORKFLOWS.md](WORKFLOWS.md) for detailed workflow documentation.
 
 ## Learn More
 
