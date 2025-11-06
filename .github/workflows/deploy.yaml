@@ -122,9 +122,11 @@ jobs:
               uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
               with:
                   install_args: --yes
+                  mise_toml: |
+                      [tools]
+                      node = "22"
+                      "npm:wrangler" = "4.45.4"
 
-            - name: Install dependencies
-              run: mise run install
             - name: Download build artifact
               uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
               with:
@@ -184,9 +186,10 @@ jobs:
               uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
               with:
                   install_args: --yes
-
-            - name: Install dependencies
-              run: mise run install
+                  mise_toml: |
+                      [tools]
+                      node = "22"
+                      "npm:wrangler" = "4.45.4"
 
             - name: Download build artifact
               uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
@@ -247,9 +250,10 @@ jobs:
               uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
               with:
                   install_args: --yes
-
-            - name: Install dependencies
-              run: mise run install
+                  mise_toml: |
+                      [tools]
+                      node = "22"
+                      "npm:wrangler" = "4.45.4"
 
             - name: Download build artifact
               uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
