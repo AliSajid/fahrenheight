@@ -8,11 +8,6 @@ inputs:
 runs:
     using: 'composite'
     steps:
-        - name: Checkout repository
-          uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-          with:
-              fetch-depth: 0
-
         - name: Install mise
           uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
           with:
