@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 exclude: '^dist/.*$'
+default_stages:
+    - pre-commit
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v6.0.0
@@ -15,6 +17,7 @@ repos:
                 - --branch
                 - next
           - id: check-merge-conflict
+            stages: [pre-commit, pre-merge-commit]
           - id: check-toml
           - id: check-xml
           - id: check-yaml
@@ -39,10 +42,6 @@ repos:
       rev: v1.37.1
       hooks:
           - id: yamllint
-            args:
-                - --config=$(pwd)/.yamllint.yml
-            stages:
-                - commit-msg
 
     - repo: https://github.com/Yelp/detect-secrets
       rev: v1.5.0
@@ -64,6 +63,7 @@ repos:
       rev: v8.27.0
       hooks:
           - id: gitleaks
+            stages: [pre-push]
 
     - repo: local
       hooks:
@@ -75,11 +75,13 @@ repos:
             pass_filenames: false
           - id: eslint
             name: eslint & prettier (lint check)
+            stages: [pre-push]
             entry: mise run lint:check
             language: system
             pass_filenames: false
-          - id: cog check
+          - id: cog-check
             name: Cog Check
+            stages: [commit-msg]
             entry: cog check
             language: system
             pass_filenames: false
@@ -88,6 +90,7 @@ repos:
       rev: 'v5.1.1'
       hooks:
           - id: reuse
+            stages: [pre-push]
 
     - repo: https://github.com/renovatebot/pre-commit-hooks
       rev: 41.159.4
