@@ -146,8 +146,8 @@ jobs:
             - name: Sign artifacts
               shell: bash
               run: |
-                  echo "${{ secrets.GPG_KEY_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --detach-sign --armor "$ARTIFACT"
-                  echo "${{ secrets.GPG_KEY_PASSPHRASE }}" | gpg --batch --yes --passphrase-fd 0 --detach-sign --armor SHA256SUMS.txt
+                  gpg --batch --yes --detach-sign --armor "$ARTIFACT"
+                  gpg --batch --yes --detach-sign --armor SHA256SUMS.txt
 
             - name: Assemble release notes
               shell: bash
