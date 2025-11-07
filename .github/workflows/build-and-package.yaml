@@ -1,0 +1,48 @@
+name: Build and Package
+
+on:
+    workflow_call:
+        outputs:
+            artifact-name:
+                description: 'Name of produced artifact'
+                value: build-artifact
+            artifact-size:
+                description: 'Human readable artifact size'
+                value: ${{ jobs.build.outputs.artifact-size }}
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        outputs:
+            artifact-size: ${{ steps.size.outputs.artifact_size }}
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              with:
+                  disable-sudo: true
+                  egress-policy: block
+                  allowed-endpoints: >
+                      api.github.com:443
+                      github.com:443
+                      mise.jdx.dev:443
+                      objects.githubusercontent.com:443
+                      registry.npmjs.org:443
+            - name: Setup and build
+              uses: ./.github/actions/setup-and-build
+              with:
+                  package: true
+            - name: Upload artifact
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+              with:
+                  name: build-artifact
+                  path: build-artifact.zip
+                  retention-days: 1
+                  compression-level: 0
+            - name: Capture artifact size
+              id: size
+              run: |
+                  echo "artifact_size=$(du -h build-artifact.zip | cut -f1)" >> $GITHUB_OUTPUT
