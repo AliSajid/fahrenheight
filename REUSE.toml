@@ -49,6 +49,7 @@ path = [
     "tsconfig.json",
     "vite.config.ts",
     "vitest-setup-client.ts",
+    "sonar-project.properties",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
