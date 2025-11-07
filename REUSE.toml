@@ -19,7 +19,7 @@ SPDX-License-Identifier = "MIT"
 
 # GitHub workflows - MIT License
 [[annotations]]
-path = ".github/workflows/**"
+path = [".github/workflows/**/*.yaml", ".github/actions/**/*.yaml"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Ali Sajid Imami <Ali.Sajid.Imami@gmail.com>"
 SPDX-License-Identifier = "MIT"
