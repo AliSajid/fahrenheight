@@ -136,6 +136,12 @@ jobs:
                   gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
                   passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
                   trust_level: ultimate
+                  fingerprint: ${{ secrets.GPG_SUBKEY_FINGERPRINT }}
+                  git_user_signingkey: true
+                  git_commit_gpgsign: true
+                  git_tag_gpgsign: false
+                  git_committer_name: ${{ vars.GIT_AUTHOR_NAME }}
+                  git_committer_email: ${{ vars.GIT_AUTHOR_EMAIL }}
 
             - name: Sign artifacts
               shell: bash
@@ -241,5 +247,4 @@ jobs:
                   wrangler pages deploy build \
                       --project-name=fahrenheight \
                       --branch="${{ github.ref_name }}" \
-                      --commit-hash="${{ github.sha }}" \
-                      --commit-message="${{ github.event.head_commit.message }}"
+                      --commit-hash="${{ github.sha }}"
