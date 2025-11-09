@@ -1,6 +1,7 @@
-name: Manual Dev Pre-Release
+name: Release Workflow
 
 on:
+    workflow_dispatch:
     workflow_call:
         inputs:
             artifact_id:
