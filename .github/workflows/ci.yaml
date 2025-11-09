@@ -48,3 +48,4 @@ jobs:
         with:
             artifact_id: ${{ needs.build-and-package.outputs.artifact-id }}
             artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest }}
+            release_type: ${{ needs.release_type.outputs.release_type }}
