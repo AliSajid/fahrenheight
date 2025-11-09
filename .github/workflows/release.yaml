@@ -1,18 +1,20 @@
 name: Manual Dev Pre-Release
 
 on:
-    workflow_dispatch:
+    workflow_call:
         inputs:
-            base-ref:
-                description: Base ref (tag or branch) to derive next dev version
-                required: false
+            artifact_id:
+                description: 'GitHub Artifact ID of produced artifact'
+                required: true
                 type: string
-            run-build:
-                description: Run build before packaging
-                required: false
-                type: boolean
-                default: true
-
+            artifact_digest:
+                description: 'GitHub Artifact Digest of produced artifact'
+                required: true
+                type: string
+            release_type:
+                description: 'Type of release: stable, next, dev'
+                required: true
+                type: string
 permissions:
     contents: write
     id-token: write
@@ -20,67 +22,11 @@ permissions:
     actions: read
 
 jobs:
-    build:
-        if: inputs.run-build == true
-        runs-on: ubuntu-latest
-        steps:
-            - name: Harden Runner
-              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
-              with:
-                  disable-sudo: true
-                  egress-policy: block
-                  allowed-endpoints: >
-                      api.github.com:443
-                      github.com:443
-                      mise.jdx.dev:443
-                      objects.githubusercontent.com:443
-                      registry.npmjs.org:443
-
-            - name: Checkout
-              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-              with:
-                  fetch-depth: 0
-
-            - name: Setup mise
-              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
-              with:
-                  install_args: --yes
-
-            - name: Install deps
-              shell: bash
-              run: mise run install
-
-            - name: Sync types
-              shell: bash
-              run: mise run sync
-
-            - name: Build site
-              shell: bash
-              run: mise run build
-
-            - name: Package artifact
-              shell: bash
-              run: |
-                  cd build
-                  zip -r ../build-artifact.zip .
-                  cd ..
-                  du -h build-artifact.zip | cut -f1 > .size
-                  echo "Artifact size: $(cat .size)" >> $GITHUB_STEP_SUMMARY
-
-            - name: Upload artifact
-              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
-              with:
-                  name: build-artifact
-                  path: build-artifact.zip
-                  retention-days: 1
-                  compression-level: 0
-
     dev-release:
         runs-on: ubuntu-latest
-        needs: [build]
+        if: ${{ inputs.release_type == 'dev' }}
         env:
             ARTIFACT: ''
-        if: always() && (needs.build.result == 'success' || inputs.run-build == false)
         permissions:
             contents: write
             id-token: write
@@ -112,42 +58,27 @@ jobs:
               uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
               with:
                   install_args: --yes
+                  mise_toml: |
+                      [tools]
+                      "ubi:cocogitto/cocogitto" = { version = "6.4.0", exe = "cog" }
 
             - name: Download build artifact
-              if: inputs.run-build == true
-              uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+              uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
               with:
-                  name: build-artifact
+                  artifact-ids: inputs.artifact_id
 
-            - name: Ensure artifact exists (fallback if build skipped)
-              if: inputs.run-build == false
+            - name: Verify artifact download
               shell: bash
-              run: |
-                  echo "Build skipped; expecting existing build-artifact.zip in repo root or failing fast."
-                  test -f build-artifact.zip || { echo 'Missing build-artifact.zip'; exit 1; }
+              run: ls -alh build-artifact.zip
 
             - name: Compute dev version
               id: version
               shell: bash
               run: |
-                  BASE_REF="${{ inputs.base-ref }}"
-                  if [[ -z "$BASE_REF" ]]; then
-                    BASE_REF=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
-                  fi
-                  if [[ "$BASE_REF" != v* ]]; then
-                    BASE_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
-                  else
-                    BASE_TAG="$BASE_REF"
-                  fi
-                  BASE_NUM=${BASE_TAG#v}
-                  IFS='.' read -ra PARTS <<< "$BASE_NUM"
-                  MAJOR=${PARTS[0]:-0}
-                  MINOR=${PARTS[1]:-0}
-                  PATCH=${PARTS[2]%%[-+]*}
-                  NEXT_PATCH=$((PATCH + 1))
                   SHORT_SHA=$(git rev-parse --short HEAD)
                   TS=$(date +%Y%m%d%H%M%S)
-                  VERSION="v${MAJOR}.${MINOR}.${NEXT_PATCH}-dev.${TS}+${SHORT_SHA}"
+                  BUILD="${TS}+${SHORT_SHA}"
+                  VERSION=$(cog bump --patch --pre dev --build ${BUILD})
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
                   echo "release_name=fahrenheight-$VERSION" >> $GITHUB_OUTPUT
                   echo "VERSION=$VERSION" >> $GITHUB_ENV
@@ -181,28 +112,16 @@ jobs:
 
             - name: Sign artifact
               shell: bash
-              env:
-                  GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
               run: |
-                  echo "$GPG_KEY_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 --detach-sign --armor "${ARTIFACT}"
+                  gpg --batch --yes --detach-sign --armor "${ARTIFACT}"
                   gpg --verify "${ARTIFACT}.asc" "${ARTIFACT}" || exit 1
                   echo "Signed ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
-
-            - name: Sign checksum
-              shell: bash
-              env:
-                  GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
-              run: |
-                  echo "$GPG_KEY_PASSPHRASE" | gpg --batch --yes --passphrase-fd 0 --detach-sign --armor SHA256SUMS.txt
-                  gpg --verify SHA256SUMS.txt.asc SHA256SUMS.txt || exit 1
-                  echo "Signed SHA256SUMS.txt" >> $GITHUB_STEP_SUMMARY
 
             - name: Generate SLSA attestations
               uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
               with:
                   subject-path: |
                       ${{ env.ARTIFACT }}
-                      SHA256SUMS.txt
 
             - name: Generate release notes
               shell: bash
@@ -228,7 +147,6 @@ jobs:
                   wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip
                   wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip.asc
                   wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/SHA256SUMS.txt
-                  wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/SHA256SUMS.txt.asc
                   gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
                   gpg --verify ${RELEASE_NAME}.zip.asc ${RELEASE_NAME}.zip
                   sha256sum -c SHA256SUMS.txt
@@ -253,7 +171,6 @@ jobs:
                       ${{ env.ARTIFACT }}
                       ${{ env.ARTIFACT }}.asc
                       SHA256SUMS.txt
-                      SHA256SUMS.txt.asc
                   fail_on_unmatched_files: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -262,6 +179,326 @@ jobs:
               shell: bash
               run: |
                   echo "## ✅ Dev Pre-Release Created" >> $GITHUB_STEP_SUMMARY
+                  echo "Version: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+                  echo "Artifact: ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
+                  echo "Changelog appended to release notes." >> $GITHUB_STEP_SUMMARY
+
+    next-release:
+        runs-on: ubuntu-latest
+        if: ${{ inputs.release_type == 'next' }}
+        env:
+            ARTIFACT: ''
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              with:
+                  disable-sudo: true
+                  egress-policy: block
+                  allowed-endpoints: >
+                      api.github.com:443
+                      github.com:443
+                      mise.jdx.dev:443
+                      objects.githubusercontent.com:443
+                      registry.npmjs.org:443
+                      uploads.github.com:443
+                      fulcio.sigstore.dev:443
+                      rekor.sigstore.dev:443
+                      tuf-repo-cdn.sigstore.dev:443
+                      keys.openpgp.org:443
+
+            - name: Checkout
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+              with:
+                  fetch-depth: 0
+
+            - name: Setup mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              with:
+                  install_args: --yes
+                  mise_toml: |
+                      [tools]
+                      "ubi:cocogitto/cocogitto" = { version = "6.4.0", exe = "cog" }
+
+            - name: Download build artifact
+              uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+              with:
+                  artifact-ids: inputs.artifact_id
+
+            - name: Verify artifact download
+              shell: bash
+              run: ls -alh build-artifact.zip
+
+            - name: Compute dev version
+              id: version
+              shell: bash
+              run: |
+                  VERSION=$(cog bump --pre next)
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "release_name=fahrenheight-$VERSION" >> $GITHUB_OUTPUT
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
+                  echo "RELEASE_NAME=fahrenheight-$VERSION" >> $GITHUB_ENV
+                  echo "## Pre-release version: $VERSION" >> $GITHUB_STEP_SUMMARY
+
+            - name: Rename artifact
+              shell: bash
+              run: |
+                  mv build-artifact.zip "${RELEASE_NAME}.zip"
+                  echo "ARTIFACT=${RELEASE_NAME}.zip" >> $GITHUB_ENV
+
+            - name: Create checksum
+              shell: bash
+              run: |
+                  sha256sum "${RELEASE_NAME}.zip" | tee SHA256SUMS.txt
+                  echo "## SHA256" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  cat SHA256SUMS.txt >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+
+            - name: Import GPG key
+              uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
+              with:
+                  gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+                  git_user_signingkey: true
+                  git_commit_gpgsign: true
+                  git_tag_gpgsign: true
+                  trust_level: ultimate
+
+            - name: Sign artifact
+              shell: bash
+              env:
+                  GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
+              run: |
+                  gpg --batch --yes --detach-sign --armor "${ARTIFACT}"
+                  gpg --verify "${ARTIFACT}.asc" "${ARTIFACT}" || exit 1
+                  echo "Signed ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
+
+            - name: Generate SLSA attestations
+              uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+              with:
+                  subject-path: |
+                      ${{ env.ARTIFACT }}
+
+            - name: Generate release notes
+              shell: bash
+              run: |
+                  VERSION="${{ steps.version.outputs.version }}"
+                  SHORT_SHA=$(git rev-parse --short HEAD)
+                  PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+                  if [[ -n "$PREV" ]]; then
+                    cog changelog --at "$VERSION" "$PREV..$VERSION" > release_notes.md || true
+                  else
+                    cog changelog --at "$VERSION" > release_notes.md || true
+                  fi
+                  if [[ ! -s release_notes.md ]]; then
+                    echo "# Release $VERSION" > release_notes.md
+                    echo "Generated without conventional commits range. Commit: $SHORT_SHA" >> release_notes.md
+                  fi
+                  cat >> release_notes.md <<'EOF'
+
+                  ## Verification
+
+                  ```bash
+                  # Get artifact + signatures
+                  wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip
+                  wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip.asc
+                  wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/SHA256SUMS.txt
+                  gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
+                  gpg --verify ${RELEASE_NAME}.zip.asc ${RELEASE_NAME}.zip
+                  sha256sum -c SHA256SUMS.txt
+                  ```
+
+                  ```bash
+                  # Verify SLSA attestation (GitHub CLI)
+                  gh attestation verify ${RELEASE_NAME}.zip --repo ${{ github.repository }}
+                  ```
+                  EOF
+                  echo "Created release_notes.md" >> $GITHUB_STEP_SUMMARY
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
+              with:
+                  tag_name: ${{ steps.version.outputs.version }}
+                  name: ${{ steps.version.outputs.release_name }}
+                  body_path: release_notes.md
+                  draft: false
+                  prerelease: true
+                  files: |
+                      ${{ env.ARTIFACT }}
+                      ${{ env.ARTIFACT }}.asc
+                      SHA256SUMS.txt
+                  fail_on_unmatched_files: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Summary
+              shell: bash
+              run: |
+                  echo "## ✅ Pre-Release Created" >> $GITHUB_STEP_SUMMARY
+                  echo "Version: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+                  echo "Artifact: ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
+                  echo "Changelog appended to release notes." >> $GITHUB_STEP_SUMMARY
+
+    Production-release:
+        runs-on: ubuntu-latest
+        if: ${{ inputs.release_type == 'stable' }}
+        env:
+            ARTIFACT: ''
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              with:
+                  disable-sudo: true
+                  egress-policy: block
+                  allowed-endpoints: >
+                      api.github.com:443
+                      github.com:443
+                      mise.jdx.dev:443
+                      objects.githubusercontent.com:443
+                      registry.npmjs.org:443
+                      uploads.github.com:443
+                      fulcio.sigstore.dev:443
+                      rekor.sigstore.dev:443
+                      tuf-repo-cdn.sigstore.dev:443
+                      keys.openpgp.org:443
+
+            - name: Checkout
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+              with:
+                  fetch-depth: 0
+
+            - name: Setup mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              with:
+                  install_args: --yes
+                  mise_toml: |
+                      [tools]
+                      "ubi:cocogitto/cocogitto" = { version = "6.4.0", exe = "cog" }
+
+            - name: Download build artifact
+              uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+              with:
+                  artifact-ids: inputs.artifact_id
+
+            - name: Verify artifact download
+              shell: bash
+              run: ls -alh build-artifact.zip
+
+            - name: Compute dev version
+              id: version
+              shell: bash
+              run: |
+                  VERSION=$(cog bump --pre next)
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "release_name=fahrenheight-$VERSION" >> $GITHUB_OUTPUT
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
+                  echo "RELEASE_NAME=fahrenheight-$VERSION" >> $GITHUB_ENV
+                  echo "## Pre-release version: $VERSION" >> $GITHUB_STEP_SUMMARY
+
+            - name: Rename artifact
+              shell: bash
+              run: |
+                  mv build-artifact.zip "${RELEASE_NAME}.zip"
+                  echo "ARTIFACT=${RELEASE_NAME}.zip" >> $GITHUB_ENV
+
+            - name: Create checksum
+              shell: bash
+              run: |
+                  sha256sum "${RELEASE_NAME}.zip" | tee SHA256SUMS.txt
+                  echo "## SHA256" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  cat SHA256SUMS.txt >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+
+            - name: Import GPG key
+              uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
+              with:
+                  gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+                  git_user_signingkey: true
+                  git_commit_gpgsign: true
+                  git_tag_gpgsign: true
+                  trust_level: ultimate
+
+            - name: Sign artifact
+              shell: bash
+              env:
+                  GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
+              run: |
+                  gpg --batch --yes --detach-sign --armor "${ARTIFACT}"
+                  gpg --verify "${ARTIFACT}.asc" "${ARTIFACT}" || exit 1
+                  echo "Signed ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
+
+            - name: Generate SLSA attestations
+              uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+              with:
+                  subject-path: |
+                      ${{ env.ARTIFACT }}
+
+            - name: Generate release notes
+              shell: bash
+              run: |
+                  VERSION="${{ steps.version.outputs.version }}"
+                  SHORT_SHA=$(git rev-parse --short HEAD)
+                  PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+                  if [[ -n "$PREV" ]]; then
+                    cog changelog --at "$VERSION" "$PREV..$VERSION" > release_notes.md || true
+                  else
+                    cog changelog --at "$VERSION" > release_notes.md || true
+                  fi
+                  if [[ ! -s release_notes.md ]]; then
+                    echo "# Release $VERSION" > release_notes.md
+                    echo "Generated without conventional commits range. Commit: $SHORT_SHA" >> release_notes.md
+                  fi
+                  cat >> release_notes.md <<'EOF'
+
+                  ## Verification
+
+                  ```bash
+                  # Get artifact + signatures
+                  wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip
+                  wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip.asc
+                  wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/SHA256SUMS.txt
+                  gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
+                  gpg --verify ${RELEASE_NAME}.zip.asc ${RELEASE_NAME}.zip
+                  sha256sum -c SHA256SUMS.txt
+                  ```
+
+                  ```bash
+                  # Verify SLSA attestation (GitHub CLI)
+                  gh attestation verify ${RELEASE_NAME}.zip --repo ${{ github.repository }}
+                  ```
+                  EOF
+                  echo "Created release_notes.md" >> $GITHUB_STEP_SUMMARY
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
+              with:
+                  tag_name: ${{ steps.version.outputs.version }}
+                  name: ${{ steps.version.outputs.release_name }}
+                  body_path: release_notes.md
+                  draft: false
+                  prerelease: true
+                  files: |
+                      ${{ env.ARTIFACT }}
+                      ${{ env.ARTIFACT }}.asc
+                      SHA256SUMS.txt
+                  fail_on_unmatched_files: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Summary
+              shell: bash
+              run: |
+                  echo "## ✅ Pre-Release Created" >> $GITHUB_STEP_SUMMARY
                   echo "Version: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
                   echo "Artifact: ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
                   echo "Changelog appended to release notes." >> $GITHUB_STEP_SUMMARY

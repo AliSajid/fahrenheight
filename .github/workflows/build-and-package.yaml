@@ -3,12 +3,12 @@ name: Build and Package
 on:
     workflow_call:
         outputs:
-            artifact-name:
-                description: 'Name of produced artifact'
-                value: build-artifact
-            artifact-size:
-                description: 'Human readable artifact size'
-                value: ${{ jobs.build.outputs.artifact-size }}
+            artifact-id:
+                description: 'GitHub Artifact ID of produced artifact'
+                value: jobs.build.outputs.artifact-id
+            artifact-digest:
+                description: 'GitHub Artifact Digest of produced artifact'
+                value: jobs.build.outputs.artifact-digest
 
 permissions:
     contents: read
@@ -18,7 +18,8 @@ jobs:
         name: Build
         runs-on: ubuntu-latest
         outputs:
-            artifact-size: ${{ steps.size.outputs.artifact_size }}
+            artifact-id: ${{ steps.upload.outputs.artifact-id}}
+            artifact-digest: ${{ steps.upload.outputs.artifact-digest}}
         steps:
             - name: Harden Runner
               uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
@@ -35,19 +36,29 @@ jobs:
             - name: Checkout Repository
               uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Setup and build
-              uses: ./.github/actions/setup-and-build
+            - name: Install mise
+              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
               with:
-                  package: true
+                  install_args: --yes
+
+            - name: Install dependencies
+              shell: bash
+              run: mise run install
+
+            - name: Sync SvelteKit
+              shell: bash
+              run: mise run sync
+
+            - name: Build static site
+              shell: bash
+              run: mise run build
+
             - name: Upload artifact
+              id: upload
               uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
               with:
                   name: build-artifact
-                  path: build-artifact.zip
+                  path: build/
                   retention-days: 1
-                  compression-level: 0
-            - name: Capture artifact size
-              shell: bash
-              id: size
-              run: |
-                  echo "artifact_size=$(du -h build-artifact.zip | cut -f1)" >> $GITHUB_OUTPUT
+                  compression-level: 9
+                  if-no-files-found: error
