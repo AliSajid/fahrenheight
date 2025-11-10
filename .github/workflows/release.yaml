@@ -179,7 +179,7 @@ jobs:
             - name: Summary
               shell: bash
               run: |
-                  echo "## ✅ Dev Pre-Release Created" >> $GITHUB_STEP_SUMMARY
+                  echo "## Dev Pre-Release Created" >> $GITHUB_STEP_SUMMARY
                   echo "Version: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
                   echo "Artifact: ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
                   echo "Changelog appended to release notes." >> $GITHUB_STEP_SUMMARY
@@ -237,7 +237,7 @@ jobs:
               id: version
               shell: bash
               run: |
-                  VERSION=$(cog bump --pre next)
+                  VERSION=$(cog bump --auto --pre next)
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
                   echo "release_name=fahrenheight-$VERSION" >> $GITHUB_OUTPUT
                   echo "VERSION=$VERSION" >> $GITHUB_ENV
@@ -339,7 +339,7 @@ jobs:
             - name: Summary
               shell: bash
               run: |
-                  echo "## ✅ Pre-Release Created" >> $GITHUB_STEP_SUMMARY
+                  echo "## Pre-Release Created" >> $GITHUB_STEP_SUMMARY
                   echo "Version: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
                   echo "Artifact: ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
                   echo "Changelog appended to release notes." >> $GITHUB_STEP_SUMMARY
@@ -397,12 +397,12 @@ jobs:
               id: version
               shell: bash
               run: |
-                  VERSION=$(cog bump --pre next)
+                  VERSION=$(cog bump --auto)
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
                   echo "release_name=fahrenheight-$VERSION" >> $GITHUB_OUTPUT
                   echo "VERSION=$VERSION" >> $GITHUB_ENV
                   echo "RELEASE_NAME=fahrenheight-$VERSION" >> $GITHUB_ENV
-                  echo "## Pre-release version: $VERSION" >> $GITHUB_STEP_SUMMARY
+                  echo "## Production version: $VERSION" >> $GITHUB_STEP_SUMMARY
 
             - name: Rename artifact
               shell: bash
@@ -499,7 +499,7 @@ jobs:
             - name: Summary
               shell: bash
               run: |
-                  echo "## ✅ Pre-Release Created" >> $GITHUB_STEP_SUMMARY
+                  echo "## Production Created" >> $GITHUB_STEP_SUMMARY
                   echo "Version: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
                   echo "Artifact: ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
                   echo "Changelog appended to release notes." >> $GITHUB_STEP_SUMMARY

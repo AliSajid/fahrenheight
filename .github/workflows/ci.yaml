@@ -18,13 +18,13 @@ jobs:
         name: Determine Release Type
         runs-on: ubuntu-latest
         outputs:
-            release_type: ${{ steps.set-release-type.outputs.release_type}}
+            release_type: ${{ steps.set-release-type.outputs.release_type }}
         steps:
             - name: Set Release Type to Main
               id: set-release-type
               shell: bash
               run: |
-                  if [["${GITHUB_REF_NAME}" == "main"]]; then
+                  if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
                     echo "release_type=stable" >> $GITHUB_OUTPUT
                   elif [[ "${GITHUB_REF_NAME}" == "next" ]]; then
                     echo "release_type=next" >> $GITHUB_OUTPUT
