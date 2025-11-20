@@ -136,7 +136,7 @@ jobs:
                   gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
                   passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
                   trust_level: ultimate
-                  fingerprint: ${{ secrets.GPG_SUBKEY_FINGERPRINT }}
+                  fingerprint: ${{ vars.GPG_SUBKEY_FINGERPRINT }}
                   git_user_signingkey: true
                   git_commit_gpgsign: true
                   git_tag_gpgsign: false
