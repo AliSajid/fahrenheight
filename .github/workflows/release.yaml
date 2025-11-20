@@ -89,7 +89,9 @@ jobs:
             - name: Rename artifact
               shell: bash
               run: |
-                  mv build-artifact.zip "${RELEASE_NAME}.zip"
+                  cd build-artifact
+                  zip -r ../"${RELEASE_NAME}.zip" .
+                  cd ..
                   echo "ARTIFACT=${RELEASE_NAME}.zip" >> $GITHUB_ENV
 
             - name: Create checksum
@@ -139,11 +141,11 @@ jobs:
                     echo "# Release $VERSION" > release_notes.md
                     echo "Generated without conventional commits range. Commit: $SHORT_SHA" >> release_notes.md
                   fi
-                  cat >> release_notes.md <<'EOF'
+                  cat >> release_notes.md <<EOF
 
                   ## Verification
 
-                  ```bash
+                  \`\`\`bash
                   # Get artifact + signatures
                   wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip
                   wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip.asc
@@ -151,12 +153,12 @@ jobs:
                   gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
                   gpg --verify ${RELEASE_NAME}.zip.asc ${RELEASE_NAME}.zip
                   sha256sum -c SHA256SUMS.txt
-                  ```
+                  \`\`\`
 
-                  ```bash
+                  \`\`\`bash
                   # Verify SLSA attestation (GitHub CLI)
                   gh attestation verify ${RELEASE_NAME}.zip --repo ${{ github.repository }}
-                  ```
+                  \`\`\`
                   EOF
                   echo "Created release_notes.md" >> $GITHUB_STEP_SUMMARY
 
