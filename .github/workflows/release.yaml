@@ -229,7 +229,7 @@ jobs:
             - name: Download build artifact
               uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
               with:
-                  artifact-ids: inputs.artifact_id
+                  artifact-ids: ${{ inputs.artifact_id }}
 
             - name: Verify artifact download
               shell: bash
@@ -389,7 +389,7 @@ jobs:
             - name: Download build artifact
               uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
               with:
-                  artifact-ids: inputs.artifact_id
+                  artifact-ids: ${{ inputs.artifact_id }}
 
             - name: Verify artifact download
               shell: bash
