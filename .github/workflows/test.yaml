@@ -1,11 +1,6 @@
 name: Run Unit and Integration Tests
 
 on:
-    pull_request:
-        branches:
-            - main
-            - next
-    push:
     workflow_dispatch:
     workflow_call:
 

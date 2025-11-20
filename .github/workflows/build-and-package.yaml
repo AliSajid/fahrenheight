@@ -8,7 +8,7 @@ on:
                 value: ${{ jobs.build.outputs.artifact-id }}
             artifact-digest:
                 description: 'GitHub Artifact Digest of produced artifact'
-                value: ${{jobs.build.outputs.artifact-digest}}
+                value: ${{ jobs.build.outputs.artifact-digest }}
 
 permissions:
     contents: read
