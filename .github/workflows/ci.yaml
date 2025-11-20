@@ -33,6 +33,11 @@ jobs:
                   else
                     echo "release_type=none" >> $GITHUB_OUTPUT
                   fi
+    manual-build-and-package:
+        name: Manual Build and Package (dispatch only)
+        needs: release_type
+        if: github.event_name == 'workflow_dispatch' && success() && needs.release_type.outputs.release_type != 'none'
+        uses: ./.github/workflows/build-and-package.yaml
     test:
         name: Run Unit and Integration Tests
         uses: ./.github/workflows/test.yaml
@@ -43,7 +48,7 @@ jobs:
         uses: ./.github/workflows/build-and-package.yaml
     release:
         name: Create Release
-        needs: [build-and-package, test, release_type]
+        needs: [build-and-package, manual-build-and-package, test, release_type]
         permissions:
             actions: read
             attestations: write
@@ -52,19 +57,20 @@ jobs:
         if: success() && needs.release_type.outputs.release_type != 'none'
         uses: ./.github/workflows/release.yaml
         with:
-            artifact_id: ${{ needs.build-and-package.outputs.artifact-id }}
-            artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest }}
+            artifact_id: ${{ needs.build-and-package.outputs.artifact-id || needs.manual-build-and-package.outputs.artifact-id }}
+            artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest || needs.manual-build-and-package.outputs.artifact-digest }}
             release_type: ${{ needs.release_type.outputs.release_type }}
     deploy:
         name: Deploy Site
-        needs: [release, build-and-package, release_type]
+        needs:
+            [release, build-and-package, manual-build-and-package, release_type]
         permissions:
             contents: read
             pull-requests: read
         if: success() && needs.release_type.outputs.release_type != 'none'
         uses: ./.github/workflows/deploy.yaml
         with:
-            artifact_id: ${{ needs.build-and-package.outputs.artifact-id }}
-            artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest }}
+            artifact_id: ${{ needs.build-and-package.outputs.artifact-id || needs.manual-build-and-package.outputs.artifact-id }}
+            artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest || needs.manual-build-and-package.outputs.artifact-digest }}
             release_type: ${{ needs.release_type.outputs.release_type }}
         secrets: inherit # pragma: allowlist secret
