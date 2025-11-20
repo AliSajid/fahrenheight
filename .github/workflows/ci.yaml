@@ -58,6 +58,9 @@ jobs:
     deploy:
         name: Deploy Site
         needs: [release, build-and-package, release_type]
+        permissions:
+            contents: read
+            pull-requests: read
         if: success() && needs.release_type.outputs.release_type != 'none'
         uses: ./.github/workflows/deploy.yaml
         with:
