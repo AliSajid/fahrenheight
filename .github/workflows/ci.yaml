@@ -39,6 +39,7 @@ jobs:
     build-and-package:
         name: Build and Package
         needs: test
+        if: success()
         uses: ./.github/workflows/build-and-package.yaml
     release:
         name: Create Release
@@ -54,3 +55,13 @@ jobs:
             artifact_id: ${{ needs.build-and-package.outputs.artifact-id }}
             artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest }}
             release_type: ${{ needs.release_type.outputs.release_type }}
+    deploy:
+        name: Deploy Site
+        needs: [release, build-and-package, release_type]
+        if: success() && needs.release_type.outputs.release_type != 'none'
+        uses: ./.github/workflows/deploy.yaml
+        with:
+            artifact_id: ${{ needs.build-and-package.outputs.artifact-id }}
+            artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest }}
+            release_type: ${{ needs.release_type.outputs.release_type }}
+        secrets: inherit # pragma: allowlist secret

@@ -66,11 +66,11 @@ jobs:
             - name: Download build artifact
               uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
               with:
-                  artifact-ids: inputs.artifact_id
+                  artifact-ids: ${{inputs.artifact_id}}
 
             - name: Verify artifact download
               shell: bash
-              run: ls -alh build-artifact.zip
+              run: ls -alh build-artifact/
 
             - name: Compute dev version
               id: version
@@ -344,7 +344,7 @@ jobs:
                   echo "Artifact: ${ARTIFACT}" >> $GITHUB_STEP_SUMMARY
                   echo "Changelog appended to release notes." >> $GITHUB_STEP_SUMMARY
 
-    Production-release:
+    production-release:
         runs-on: ubuntu-latest
         if: ${{ inputs.release_type == 'stable' }}
         env:
@@ -393,7 +393,7 @@ jobs:
               shell: bash
               run: ls -alh build-artifact.zip
 
-            - name: Compute dev version
+            - name: Compute production version
               id: version
               shell: bash
               run: |

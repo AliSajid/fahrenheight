@@ -5,10 +5,10 @@ on:
         outputs:
             artifact-id:
                 description: 'GitHub Artifact ID of produced artifact'
-                value: jobs.build.outputs.artifact-id
+                value: ${{ jobs.build.outputs.artifact-id }}
             artifact-digest:
                 description: 'GitHub Artifact Digest of produced artifact'
-                value: jobs.build.outputs.artifact-digest
+                value: ${{jobs.build.outputs.artifact-digest}}
 
 permissions:
     contents: read
