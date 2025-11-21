@@ -57,15 +57,25 @@ runs:
               RELEASE_TYPE: ${{ inputs.release_type }}
           run: |
               if [[ "$RELEASE_TYPE" == 'dev' ]]; then
-                SHORT_SHA=$(git rev-parse --short HEAD)
+                SHORT_SHA=$(git rev-parse --short HEAD | tr -cd 'a-fA-F0-9')
                 TS=$(date +%Y%m%d%H%M%S)
-                BUILD="${TS}+${SHORT_SHA}"
-                VERSION=$(cog bump --patch --pre dev --build "${BUILD}")
+                BUILD="${TS}-${SHORT_SHA}"
+                echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
+                echo "[DEBUG] TS=$TS"
+                echo "[DEBUG] SHORT_SHA=$SHORT_SHA"
+                echo "[DEBUG] BUILD=$BUILD"
+                echo "[DEBUG] Running: cog bump --patch --pre dev --build \"$BUILD\""
+                VERSION=$(cog bump --patch --pre dev --build "$BUILD")
               elif [[ "$RELEASE_TYPE" == 'next' ]]; then
+                echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
+                echo "[DEBUG] Running: cog bump --auto --pre next"
                 VERSION=$(cog bump --auto --pre next)
               else
+                echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
+                echo "[DEBUG] Running: cog bump --auto"
                 VERSION=$(cog bump --auto)
               fi
+              echo "[DEBUG] VERSION=$VERSION"
               echo "version=$VERSION" >> "$GITHUB_OUTPUT"
               echo "release_name=fahrenheight-$VERSION" >> "$GITHUB_OUTPUT"
               echo "VERSION=$VERSION" >> "$GITHUB_ENV"
