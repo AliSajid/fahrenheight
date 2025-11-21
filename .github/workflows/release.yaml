@@ -35,3 +35,6 @@ jobs:
                   artifact_id: ${{ inputs.artifact_id }}
                   artifact_digest: ${{ inputs.artifact_digest }}
                   release_type: ${{ inputs.release_type }}
+                  gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+                  gpg_passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
