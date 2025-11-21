@@ -45,12 +45,13 @@ runs:
           uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
           with:
               artifact-ids: ${{ inputs.artifact_id }}
+              path: build
 
         - name: Inspect download
           shell: bash
           run: |
               echo 'Contents after download:'
-              ls -R . | head -100 || true
+              ls -R build | head -100 || true
 
         - name: Compute version
           id: version
@@ -79,12 +80,12 @@ runs:
           shell: bash
           run: |
               # Handle either directory (dev build) or existing zip (next/stable)
-              if [[ -d build-artifact ]]; then
-                zip -r "${RELEASE_NAME}.zip" build-artifact
-              elif [[ -f build-artifact.zip ]]; then
-                mv build-artifact.zip "${RELEASE_NAME}.zip"
+              if [[ -d build ]]; then
+                zip -r "${RELEASE_NAME}.zip" build
+              elif [[ -f build.zip ]]; then
+                mv build.zip "${RELEASE_NAME}.zip"
               else
-                echo 'Expected build-artifact directory or build-artifact.zip not found' >&2
+                echo 'Expected build directory or build.zip not found' >&2
                 exit 1
               fi
               echo "ARTIFACT=${RELEASE_NAME}.zip" >> "$GITHUB_ENV"
