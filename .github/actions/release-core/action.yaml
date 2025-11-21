@@ -12,13 +12,13 @@ inputs:
         description: 'Release channel: stable | next | dev'
         required: true
     gpg_private_key:
-        description: 'ASCII-armored GPG private key. Pass from caller via ${{ secrets.GPG_PRIVATE_KEY }}.'
+        description: 'ASCII-armored GPG private key.'
         required: true
     gpg_passphrase:
-        description: 'Passphrase for the GPG private key. Pass from caller via ${{ secrets.GPG_KEY_PASSPHRASE }}.'
+        description: 'Passphrase for the GPG private key.'
         required: true
     github_token:
-        description: 'GitHub token used to create releases. Pass from caller via ${{ secrets.GITHUB_TOKEN }}.'
+        description: 'GitHub token used to create releases'
         required: true
 outputs:
     release_version:
