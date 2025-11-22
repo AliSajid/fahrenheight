@@ -76,6 +76,19 @@ runs:
                 VERSION=$(cog bump --auto)
               fi
               echo "[DEBUG] VERSION=$VERSION"
+
+              # Update package.json version if it exists
+              if [ -f package.json ]; then
+                echo "[DEBUG] Updating package.json version to $VERSION"
+                # Use jq if available, otherwise use sed
+                if command -v jq >/dev/null 2>&1; then
+                  jq --arg ver "$VERSION" '.version = $ver' package.json > package.json.tmp && mv package.json.tmp package.json
+                else
+                  sed -i.bak -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" package.json && rm -f package.json.bak
+                fi
+                echo "[DEBUG] package.json version updated"
+              fi
+
               echo "version=$VERSION" >> "$GITHUB_OUTPUT"
               echo "release_name=fahrenheight-$VERSION" >> "$GITHUB_OUTPUT"
               echo "VERSION=$VERSION" >> "$GITHUB_ENV"
