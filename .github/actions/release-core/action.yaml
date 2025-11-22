@@ -109,20 +109,27 @@ runs:
                 echo "[DEBUG] SHORT_SHA=$SHORT_SHA"
                 echo "[DEBUG] BUILD=$BUILD"
                 echo "[DEBUG] Running: cog bump --patch --pre dev --build \"$BUILD\""
-                VERSION=$(cog bump --patch --pre dev --build "$BUILD" 2>&1 | tee /dev/stderr | tail -n1)
+                COG_OUTPUT=$(cog bump --patch --pre dev --build "$BUILD" 2>&1)
+                echo "$COG_OUTPUT"
+                VERSION=$(echo "$COG_OUTPUT" | grep -oP 'Bumped version: .* -> \K.*' | tail -n1)
               elif [[ "$RELEASE_TYPE" == 'next' ]]; then
                 echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
                 echo "[DEBUG] Running: cog bump --auto --pre next"
-                VERSION=$(cog bump --auto --pre next 2>&1 | tee /dev/stderr | tail -n1)
+                COG_OUTPUT=$(cog bump --auto --pre next 2>&1)
+                echo "$COG_OUTPUT"
+                VERSION=$(echo "$COG_OUTPUT" | grep -oP 'Bumped version: .* -> \K.*' | tail -n1)
               else
                 echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
                 echo "[DEBUG] Running: cog bump --auto"
-                VERSION=$(cog bump --auto 2>&1 | tee /dev/stderr | tail -n1)
+                COG_OUTPUT=$(cog bump --auto 2>&1)
+                echo "$COG_OUTPUT"
+                VERSION=$(echo "$COG_OUTPUT" | grep -oP 'Bumped version: .* -> \K.*' | tail -n1)
               fi
 
               # Validate VERSION is not empty
               if [ -z "$VERSION" ]; then
                 echo "::error::Failed to compute version - cog bump returned empty string"
+                echo "::error::cog output was: $COG_OUTPUT"
                 exit 1
               fi
 
