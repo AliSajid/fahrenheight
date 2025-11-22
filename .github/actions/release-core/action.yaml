@@ -33,6 +33,45 @@ outputs:
 runs:
     using: 'composite'
     steps:
+        - name: Validate inputs
+          shell: bash
+          env:
+              GPG_KEY: ${{ inputs.gpg_private_key }}
+              GPG_PASS: ${{ inputs.gpg_passphrase }}
+              GH_TOKEN: ${{ inputs.github_token }}
+              RELEASE_TYPE: ${{ inputs.release_type }}
+          run: |
+              set -e
+
+              # Validate required secret inputs are not empty
+              if [ -z "$GPG_KEY" ]; then
+                echo "::error::gpg_private_key input is required but not provided"
+                exit 1
+              fi
+
+              if [ -z "$GPG_PASS" ]; then
+                echo "::error::gpg_passphrase input is required but not provided"
+                exit 1
+              fi
+
+              if [ -z "$GH_TOKEN" ]; then
+                echo "::error::github_token input is required but not provided"
+                exit 1
+              fi
+
+              # Validate release_type
+              case "$RELEASE_TYPE" in
+                stable|next|dev)
+                  echo "✓ Valid release_type: $RELEASE_TYPE"
+                  ;;
+                *)
+                  echo "::error::Invalid release_type: $RELEASE_TYPE. Must be: stable, next, or dev"
+                  exit 1
+                  ;;
+              esac
+
+              echo "✓ All required inputs validated"
+
         - name: Setup mise + cog
           uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
           with:
@@ -56,6 +95,11 @@ runs:
           env:
               RELEASE_TYPE: ${{ inputs.release_type }}
           run: |
+              set -e
+
+              # Discard any changes to mise.toml before bumping
+              git checkout -- mise.toml 2>/dev/null || true
+
               if [[ "$RELEASE_TYPE" == 'dev' ]]; then
                 SHORT_SHA=$(git rev-parse --short HEAD | tr -cd 'a-fA-F0-9')
                 TS=$(date +%Y%m%d%H%M%S)
@@ -65,16 +109,23 @@ runs:
                 echo "[DEBUG] SHORT_SHA=$SHORT_SHA"
                 echo "[DEBUG] BUILD=$BUILD"
                 echo "[DEBUG] Running: cog bump --patch --pre dev --build \"$BUILD\""
-                VERSION=$(cog bump --patch --pre dev --build "$BUILD")
+                VERSION=$(cog bump --patch --pre dev --build "$BUILD" 2>&1 | tee /dev/stderr | tail -n1)
               elif [[ "$RELEASE_TYPE" == 'next' ]]; then
                 echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
                 echo "[DEBUG] Running: cog bump --auto --pre next"
-                VERSION=$(cog bump --auto --pre next)
+                VERSION=$(cog bump --auto --pre next 2>&1 | tee /dev/stderr | tail -n1)
               else
                 echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
                 echo "[DEBUG] Running: cog bump --auto"
-                VERSION=$(cog bump --auto)
+                VERSION=$(cog bump --auto 2>&1 | tee /dev/stderr | tail -n1)
               fi
+
+              # Validate VERSION is not empty
+              if [ -z "$VERSION" ]; then
+                echo "::error::Failed to compute version - cog bump returned empty string"
+                exit 1
+              fi
+
               echo "[DEBUG] VERSION=$VERSION"
 
               # Update package.json version if it exists
