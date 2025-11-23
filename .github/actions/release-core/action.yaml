@@ -103,7 +103,7 @@ runs:
               if [ "$RELEASE_TYPE" = 'dev' ]; then
                 SHORT_SHA=$(git rev-parse --short HEAD | tr -cd 'a-fA-F0-9')
                 TS=$(date +%Y%m%d%H%M%S)
-                BUILD="${TS}-${SHORT_SHA}"
+                BUILD="${TS}+${SHORT_SHA}"
                 echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
                 echo "[DEBUG] TS=$TS"
                 echo "[DEBUG] SHORT_SHA=$SHORT_SHA"
