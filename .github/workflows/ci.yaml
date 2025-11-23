@@ -55,9 +55,13 @@ jobs:
             artifact_id: ${{ needs.build-and-package.outputs.artifact-id }}
             artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest }}
             release_type: ${{ needs.release_type.outputs.release_type }}
+        secrets: inherit # pragma: allowlist secret
     deploy:
         name: Deploy Site
         needs: [release, build-and-package, release_type]
+        permissions:
+            contents: read
+            pull-requests: read
         if: success() && needs.release_type.outputs.release_type != 'none'
         uses: ./.github/workflows/deploy.yaml
         with:

@@ -94,15 +94,16 @@ jobs:
                   install_args: --yes
 
             - name: Download build artifact
-              uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+              uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
               with:
-                  name: build-artifact
+                  artifact-ids: ${{ inputs.artifact_id }}
+                  path: build
 
-            - name: Extract build artifact
+            - name: Inspect download
               shell: bash
               run: |
-                  mkdir -p build
-                  unzip -q build-artifact.zip -d build
+                  echo 'Contents after download:'
+                  ls -R build | head -100 || true
             - name: Deploy with Wrangler Action
               uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
               # pragma: allowlist secret
@@ -110,6 +111,6 @@ jobs:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   command: >-
-                      pages deploy build \
-                      --project-name=fahrenheight \
+                      pages deploy build
+                      --project-name=fahrenheight
                       --branch=${{ needs.target.outputs.pages_branch }}
