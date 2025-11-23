@@ -2,4 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-// place files you want to import through the `$lib` alias in this folder.
+// Components
+export { default as TemperatureConverter } from './components/TemperatureConverter.svelte'
+
+// Utilities
+export { Temperature } from './utils/Temperature.class'
+export { TemperatureConverter as TemperatureConverterUtil } from './utils/TemperatureConverter.class'
+export type { TemperatureUnit, ConversionResult } from './utils/types'
