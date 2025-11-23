@@ -63,7 +63,7 @@ SPDX-License-Identifier: MIT
             </div>
             <p class="text-surface-600-300-token">
                 Visual comparison of the approximation formula <code
-                    class="code">(F - 32) / 2 ≈ C</code
+                    class="code">(F - 30) / 2 ≈ C</code
                 > vs the exact formula, showing accuracy and error metrics across
                 temperature ranges.
             </p>

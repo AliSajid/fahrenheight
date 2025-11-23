@@ -5,7 +5,7 @@
 This is a static SvelteKit web application for temperature conversion and analysis. The project demonstrates:
 
 1. A dynamic bidirectional temperature converter (Celsius ↔ Fahrenheit)
-2. A graph showing the accuracy/error of the approximation formula: `(F - 32) / 2 ≈ C` compared to the exact formula: `(F - 32) * 5/9 = C`
+2. A graph showing the accuracy/error of the approximation formula: `(F - 30) / 2 ≈ C` compared to the exact formula: `(F - 32) * 5/9 = C`
 
 **Key Requirement**: This is a **static site** using `@sveltejs/adapter-static`. All calculations must happen client-side with no server-side rendering or API endpoints.
 
@@ -115,7 +115,7 @@ fahrenheight/
 - **Functionality**:
   - Display a graph comparing:
     - Exact Celsius values (from `(F - 32) * 5/9`)
-    - Approximation values (from `(F - 32) / 2`)
+    - Approximation values (from `(F - 30) / 2`)
     - Error/difference between them
   - Default temperature range: -40°F to 120°F (configurable)
   - X-axis: Fahrenheit temperature
