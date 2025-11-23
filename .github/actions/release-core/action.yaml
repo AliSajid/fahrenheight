@@ -70,7 +70,7 @@ runs:
                   ;;
               esac
 
-              echo "✓ All required inputs validated"
+              echo "All required inputs validated"
 
         - name: Setup mise + cog
           uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
@@ -100,7 +100,7 @@ runs:
               # Discard any changes to mise.toml before bumping
               git checkout -- mise.toml 2>/dev/null || true
 
-              if [[ "$RELEASE_TYPE" == 'dev' ]]; then
+              if [ "$RELEASE_TYPE" = 'dev' ]; then
                 SHORT_SHA=$(git rev-parse --short HEAD | tr -cd 'a-fA-F0-9')
                 TS=$(date +%Y%m%d%H%M%S)
                 BUILD="${TS}-${SHORT_SHA}"
@@ -111,19 +111,19 @@ runs:
                 echo "[DEBUG] Running: cog bump --patch --pre dev --build \"$BUILD\""
                 COG_OUTPUT=$(cog bump --patch --pre dev --build "$BUILD" 2>&1)
                 echo "$COG_OUTPUT"
-                VERSION=$(echo "$COG_OUTPUT" | grep -oP 'Bumped version: .* -> \K.*' | tail -n1)
-              elif [[ "$RELEASE_TYPE" == 'next' ]]; then
+                VERSION=$(echo "$COG_OUTPUT" | awk '/Bumped version:/ {print $NF}' | tail -n1)
+              elif [ "$RELEASE_TYPE" = 'next' ]; then
                 echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
                 echo "[DEBUG] Running: cog bump --auto --pre next"
                 COG_OUTPUT=$(cog bump --auto --pre next 2>&1)
                 echo "$COG_OUTPUT"
-                VERSION=$(echo "$COG_OUTPUT" | grep -oP 'Bumped version: .* -> \K.*' | tail -n1)
+                VERSION=$(echo "$COG_OUTPUT" | awk '/Bumped version:/ {print $NF}' | tail -n1)
               else
                 echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
                 echo "[DEBUG] Running: cog bump --auto"
                 COG_OUTPUT=$(cog bump --auto 2>&1)
                 echo "$COG_OUTPUT"
-                VERSION=$(echo "$COG_OUTPUT" | grep -oP 'Bumped version: .* -> \K.*' | tail -n1)
+                VERSION=$(echo "$COG_OUTPUT" | awk '/Bumped version:/ {print $NF}' | tail -n1)
               fi
 
               # Validate VERSION is not empty
@@ -142,7 +142,8 @@ runs:
                 if command -v jq >/dev/null 2>&1; then
                   jq --arg ver "$VERSION" '.version = $ver' package.json > package.json.tmp && mv package.json.tmp package.json
                 else
-                  sed -i.bak -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" package.json && rm -f package.json.bak
+                  sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" package.json
+
                 fi
                 echo "[DEBUG] package.json version updated"
               fi
@@ -158,9 +159,9 @@ runs:
           shell: bash
           run: |
               # Handle either directory (dev build) or existing zip (next/stable)
-              if [[ -d build ]]; then
+              if [ -d build ]; then
                 zip -r "${RELEASE_NAME}.zip" build
-              elif [[ -f build.zip ]]; then
+              elif [ -f build.zip ]; then
                 mv build.zip "${RELEASE_NAME}.zip"
               else
                 echo 'Expected build directory or build.zip not found' >&2
@@ -222,7 +223,7 @@ runs:
 
               ## Verification
 
-              \`\`\`bash
+              ```bash
               # Get artifact + signatures
               wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip
               wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip.asc
@@ -230,7 +231,7 @@ runs:
               gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
               gpg --verify ${RELEASE_NAME}.zip.asc ${RELEASE_NAME}.zip
               sha256sum -c SHA256SUMS.txt
-              \`\`\`
+              ```
 
               \`\`\`bash
               # Verify SLSA attestation (GitHub CLI)
