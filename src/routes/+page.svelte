@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts">
     import { Thermometer, LineChart, Github } from 'lucide-svelte'
+    import { TemperatureConverter } from '$lib'
 </script>
 
 <div class="container mx-auto px-4 py-12">
@@ -19,6 +20,11 @@ SPDX-License-Identifier: MIT
             A static SvelteKit application demonstrating bidirectional
             temperature conversion and approximation analysis
         </p>
+    </section>
+
+    <!-- Temperature Converter -->
+    <section class="mb-16">
+        <TemperatureConverter />
     </section>
 
     <!-- Features Grid -->
@@ -35,15 +41,18 @@ SPDX-License-Identifier: MIT
 
             <div class="flex items-center gap-4 mb-4">
                 <Thermometer class="w-8 h-8 text-primary-500" />
-                <h2 class="h2">Temperature Converter</h2>
+                <h2 class="h2">How It Works</h2>
             </div>
             <p class="text-surface-600-300-token">
-                Dynamic bidirectional temperature conversion between Celsius and
-                Fahrenheit using exact formulas: <code class="code"
-                    >C = (F - 32) * 5/9</code
+                Enter a temperature value and select the input unit. The
+                converter calculates both the exact conversion using <code
+                    class="code">C = (F - 32) × 5/9</code
                 >
-                and
-                <code class="code">F = C * 9/5 + 32</code>
+                or
+                <code class="code">F = C × 9/5 + 32</code>, and the
+                approximation using
+                <code class="code">C ≈ (F - 30) / 2</code> or
+                <code class="code">F ≈ 2C + 30</code>.
             </p>
         </div>
 
@@ -62,14 +71,14 @@ SPDX-License-Identifier: MIT
                 <h2 class="h2">Approximation Analysis</h2>
             </div>
             <p class="text-surface-600-300-token">
-                Visual comparison of the approximation formula <code
-                    class="code">(F - 30) / 2 ≈ C</code
-                > vs the exact formula, showing accuracy and error metrics across
-                temperature ranges.
+                The percentage difference shows how accurate the quick mental
+                approximation is compared to the exact formula. Visual
+                comparison of the approximation formula
+                <code class="code">(F - 30) / 2 ≈ C</code> vs the exact formula,
+                showing accuracy and error metrics across temperature ranges.
             </p>
         </div>
     </section>
-
     <!-- Technology Stack -->
     <section class="card variant-ghost p-8 mb-16">
         <h2 class="h2 mb-6 text-center">Built With Modern Technologies</h2>
