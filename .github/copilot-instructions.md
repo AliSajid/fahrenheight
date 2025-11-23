@@ -11,35 +11,89 @@ This is a static SvelteKit web application for temperature conversion and analys
 
 ## Technology Stack
 
+### Core Stack
+
 - **Framework**: SvelteKit 2.x with Svelte 5
 - **UI Kit**: Skeleton UI 4.x (@skeletonlabs/skeleton + @skeletonlabs/skeleton-svelte)
 - **Icons**: Lucide Svelte (lucide-svelte)
 - **Styling**: Tailwind CSS 4.x
 - **Build Tool**: Vite 7.x
-- **Package Manager**: pnpm
+- **Package Manager**: pnpm 10.x
 - **Task Runner**: mise (https://mise.jdx.dev/)
 - **Testing**:
-  - Unit/Component: Vitest with @vitest/browser
-  - E2E: Playwright
-- **Language**: TypeScript
+  - Unit/Component: Vitest 3.x with @vitest/browser
+  - E2E: Playwright 1.x
+- **Language**: TypeScript 5.x
 - **Adapter**: @sveltejs/adapter-static (SSG - Static Site Generation)
+
+### Deployment & Infrastructure
+
+- **Hosting**: Cloudflare Pages
+  - Production: `main` branch → production environment
+  - Preview: `next` branch → preview environment
+- **CDN Configuration**: Managed via `wrangler.toml`
+
+### Development Tools
+
+- **Version Management**: Cocogitto (cog) - Conventional Commits enforcement
+- **Code Quality**:
+  - ESLint 9.x with TypeScript support
+  - Prettier 3.x with Svelte, Tailwind, and multiline array plugins
+  - svelte-check for type checking
+- **Security Analysis**:
+  - SonarQube/SonarCloud - Code quality and security scanning
+  - CodeQL - Security vulnerability detection
+  - OSSF Scorecard - Supply chain security assessment
+  - Dependency Review - Vulnerability and license compliance
+- **License Compliance**: REUSE 3.0 specification
+- **Dependency Updates**: Renovate bot
 
 ## Project Structure
 
 ```
 fahrenheight/
+├── .github/
+│   ├── actions/
+│   │   └── release-core/ # Composite action for release workflow
+│   └── workflows/        # GitHub Actions workflows
+│       ├── ci.yaml              # Main CI/CD pipeline orchestrator
+│       ├── test.yaml            # Test runner (unit + E2E)
+│       ├── build-and-package.yaml # Build and artifact creation
+│       ├── release.yaml         # Release creation and signing
+│       ├── deploy.yaml          # Deployment to hosting platforms
+│       ├── sonarqube.yaml       # SonarQube code analysis
+│       ├── codeql.yaml          # CodeQL security analysis
+│       ├── scorecard.yaml       # OSSF Scorecard security checks
+│       └── dependency-review.yaml # Dependency vulnerability scanning
 ├── src/
 │   ├── routes/           # SvelteKit routes (pages)
-│   │   ├── +page.svelte # Main application page
-│   │   └── +layout.svelte
+│   │   ├── +page.svelte  # Main application page
+│   │   ├── +layout.svelte # Root layout
+│   │   └── +layout.ts    # Layout configuration
 │   ├── lib/              # Reusable components and utilities
-│   │   ├── index.ts     # Public exports
-│   │   └── components/  # Svelte components
-│   ├── app.html         # HTML template
-│   └── app.css          # Global styles
-├── static/              # Static assets (served as-is)
-├── e2e/                 # Playwright E2E tests
-└── tests/               # Unit/component tests
+│   │   ├── index.ts      # Public exports
+│   │   ├── components/   # Svelte components
+│   │   └── assets/       # Shared assets
+│   ├── app.html          # HTML template
+│   ├── app.d.ts          # TypeScript declarations
+│   └── app.css           # Global styles
+├── static/               # Static assets (served as-is)
+│   └── robots.txt
+├── build/                # Production build output (git-ignored)
+├── e2e/                  # Playwright E2E tests
+│   └── demo.test.ts
+├── LICENSES/             # License texts for REUSE compliance
+│   ├── CC0-1.0.txt
+│   └── MIT.txt
+├── styles/               # Style configuration and dictionaries
+│   └── config/
+│       └── vocabularies/
+├── cog.toml              # Cocogitto (conventional commits) configuration
+├── wrangler.toml         # Cloudflare Pages/Workers configuration
+├── sonar-project.properties # SonarQube/SonarCloud configuration
+├── REUSE.toml            # REUSE software licensing configuration
+├── renovate.json         # Renovate dependency updates configuration
+└── test-results/         # Test output directory
 ```
 
 ## Core Features to Implement
@@ -252,66 +306,245 @@ For the approximation graph, consider:
 - Keep components focused and single-purpose
 - Use spaces over tabs
 
-## GitHub Workflows
+## CI/CD Pipeline Architecture
 
-This project includes several automated workflows:
+This project implements a comprehensive CI/CD pipeline with multiple stages and workflows orchestrated through GitHub Actions.
 
-### 1. Test and Check (`test.yaml`)
+### Pipeline Overview (`ci.yaml`)
 
-- **Trigger**: On every push and pull request
-- **Purpose**: Run linting, type-checking, unit tests, and E2E tests
+The main CI/CD orchestrator that coordinates all stages:
+
+- **Trigger**: Every push and manual workflow dispatch
+- **Manual Options**: Can trigger dev release builds via workflow dispatch
+- **Release Types**:
+  - `stable`: Production releases from `main` branch
+  - `next`: Pre-releases from `next` branch
+  - `dev`: Development builds from feature branches (manual trigger)
+  - `none`: Build-only, no release (all other branches)
+
+**Pipeline Stages**:
+
+1. **Determine Release Type** → Identifies target release channel based on branch
+2. **Test** → Runs all quality checks and tests
+3. **Build & Package** → Creates production artifacts
+4. **Release** → Creates GitHub release with signing and attestation (if release type != none)
+5. **Deploy** → Deploys to Cloudflare Pages (if release type != none)
+
+### 1. Test Workflow (`test.yaml`)
+
+- **Trigger**: Called by CI pipeline, also runs on push/PR
+- **Purpose**: Comprehensive code quality and testing
+- **Jobs**:
+  - **Lint & Format**: ESLint and Prettier checks
+  - **Type Check**: svelte-check for TypeScript validation
+  - **Unit Tests**: Vitest browser mode tests
+  - **E2E Tests**: Playwright end-to-end tests
+  - **Upload Results**: Test artifacts for debugging
+- **Security**: Harden Runner with restricted network egress
+- **Tools**: mise for consistent task execution
+
+### 2. Build and Package Workflow (`build-and-package.yaml`)
+
+- **Trigger**: Called by CI pipeline after tests pass
+- **Purpose**: Build static site and create artifacts
+- **Outputs**:
+  - `artifact-id`: GitHub artifact identifier
+  - `artifact-digest`: SHA256 digest for provenance
 - **Steps**:
-  - Lint code with ESLint and Prettier
-  - Type-check with svelte-check
-  - Run unit tests with Vitest
-  - Run E2E tests with Playwright
-  - Upload test results as artifacts
+  - Install dependencies with mise
+  - Sync SvelteKit types
+  - Build static site (`build/` directory)
+  - Upload compressed artifact (retention: 1 day)
+- **Artifact Configuration**:
+  - Compression level: 9 (maximum)
+  - Fails if build directory is empty
 
-### 2. Deploy to GitHub Pages (`deploy.yaml`)
+### 3. Release Workflow (`release.yaml`)
 
-- **Trigger**: On push to `main` branch
-- **Purpose**: Build and deploy the static site to GitHub Pages
-- **Steps**:
-  - Build static site with SvelteKit
-  - Upload build artifact
-  - Deploy to GitHub Pages
-- **Note**: Requires GitHub Pages to be enabled in repository settings
+- **Trigger**: Called by CI pipeline for stable/next/dev releases
+- **Permissions**: Requires write access to contents, attestations, id-token
+- **Purpose**: Create signed, attested GitHub releases
+- **Uses**: Composite action `.github/actions/release-core`
 
-### 3. Scorecard Supply-Chain Security (`scorecard.yaml`)
+**Release Core Composite Action** (`release-core/action.yaml`):
 
-- **Trigger**: Weekly (Thursdays at 1:30 AM) and on push to `main`
-- **Purpose**: Analyze repository for security best practices
-- **Steps**:
-  - Run OSSF Scorecard analysis
-  - Upload results as SARIF
-  - Publish to GitHub Security tab
-- **Note**: Provides security score and recommendations
+A comprehensive release preparation and publishing action that:
 
-### 4. CodeQL Analysis (`codeql.yaml`)
+**Inputs**:
 
-- **Trigger**: On push/PR to `main`, and weekly (Fridays at 7:31 PM)
-- **Purpose**: Static code analysis for security vulnerabilities
-- **Steps**:
-  - Initialize CodeQL for TypeScript
-  - Run security and quality queries
-  - Upload results to GitHub Security tab
-- **Configuration**: Uses security-extended query suite
+- `artifact_id`: Build artifact to release
+- `artifact_digest`: Artifact digest for provenance
+- `release_type`: stable | next | dev
+- `gpg_private_key`: For signing releases
+- `gpg_passphrase`: GPG key passphrase
+- `github_token`: For creating releases
 
-### 5. Dependency Review (`dependency-review.yaml`)
+**Process**:
 
-- **Trigger**: On every pull request
-- **Purpose**: Review dependency changes for security issues
-- **Steps**:
-  - Scan for known vulnerabilities in dependencies
-  - Fail on moderate or higher severity issues
-  - Block GPL-2.0 and GPL-3.0 licensed dependencies
-- **Note**: Helps prevent vulnerable or incompatibly licensed packages
+1. **Version Computation**:
+   - Uses Cocogitto (cog) for semantic versioning
+   - `stable`: Auto-bump based on conventional commits
+   - `next`: Auto-bump with `-next` prerelease suffix
+   - `dev`: Patch bump with `-dev.{timestamp}+{sha}` suffix
+   - Updates `package.json` version automatically
+2. **Artifact Preparation**:
+   - Downloads build artifact
+   - Creates versioned zip file: `fahrenheight-{version}.zip`
+   - Generates SHA256 checksums
+3. **Signing**:
+   - Imports GPG key
+   - Creates detached GPG signature (`.asc` file)
+   - Verifies signature integrity
+4. **SLSA Attestation**:
+   - Generates build provenance attestation
+   - Links artifact to build process
+   - Enables supply chain verification
+5. **Release Notes**:
+   - Generates changelog from conventional commits
+   - Includes verification instructions
+   - Documents GPG signature and SLSA attestation usage
+6. **GitHub Release**:
+   - Creates tagged release
+   - Uploads: zip, signature, checksums
+   - Marks as prerelease for next/dev
+   - Fails if any files are missing
 
-All workflows use:
+**Outputs**:
 
-- **Harden Runner**: Restricts network egress for security
-- **Pinned Actions**: All actions are pinned to specific SHA hashes
-- **Mise**: For consistent task execution across environments
+- `release_version`: Computed semantic version
+- `release_name`: Display name (fahrenheight-{version})
+- `artifact_file`: Final artifact filename
+
+### 4. Deploy Workflow (`deploy.yaml`)
+
+- **Trigger**: Called by CI pipeline after successful release
+- **Purpose**: Deploy to Cloudflare Pages
+- **Configuration**:
+  - Uses `wrangler.toml` for deployment settings
+  - `stable` → production environment
+  - `next` → preview environment (requires custom domain setup)
+  - `dev` → preview deployment
+- **Requirements**:
+  - `CLOUDFLARE_API_TOKEN` secret
+  - `CLOUDFLARE_ACCOUNT_ID` secret
+- **Process**:
+  - Downloads versioned artifact
+  - Deploys to Cloudflare Pages via Wrangler
+  - Provides deployment URL
+
+### 5. Security Scanning Workflows
+
+#### SonarQube Analysis (`sonarqube.yaml`)
+
+- **Trigger**: Push to `main`/`next`, all PRs
+- **Purpose**: Code quality and security analysis
+- **Configuration**: `sonar-project.properties`
+- **Organization**: alisajid
+- **Project**: AliSajid_fahrenheight
+- **Requirements**: `SONAR_TOKEN` secret
+
+#### CodeQL Analysis (`codeql.yaml`)
+
+- **Trigger**: Push/PR to `main`, weekly schedule
+- **Purpose**: Security vulnerability detection
+- **Language**: TypeScript analysis
+- **Query Suite**: security-extended
+- **Results**: Published to Security tab
+
+#### OSSF Scorecard (`scorecard.yaml`)
+
+- **Trigger**: Weekly (Thursdays), push to `main`
+- **Purpose**: Supply chain security assessment
+- **Checks**: Branch protection, dependency updates, code review, etc.
+- **Results**: SARIF uploaded to Security tab
+
+#### Dependency Review (`dependency-review.yaml`)
+
+- **Trigger**: Every pull request
+- **Purpose**: Dependency vulnerability and license scanning
+- **Policy**:
+  - Fail on moderate+ severity vulnerabilities
+  - Block GPL-2.0 and GPL-3.0 licenses
+  - Allow other open source licenses
+- **Prevents**: Vulnerable or incompatibly licensed dependencies from merging
+
+### Workflow Security Features
+
+All workflows implement comprehensive security measures:
+
+1. **Harden Runner** (step-security/harden-runner):
+   - Restricts network egress to allowed endpoints
+   - Prevents unauthorized network access
+   - Audits network activity
+   - Blocks supply chain attacks
+
+2. **Action Pinning**:
+   - All actions pinned to specific SHA hashes
+   - Prevents malicious action updates
+   - Example: `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683`
+
+3. **Minimal Permissions**:
+   - Principle of least privilege
+   - Explicit permission declarations per job
+   - Read-only by default
+
+4. **Secret Management**:
+   - Secrets marked with `# pragma: allowlist secret` comment
+   - No secrets in logs or outputs
+   - GPG keys for signing
+   - API tokens for deployments
+
+5. **Artifact Integrity**:
+   - SHA256 checksums for all artifacts
+   - GPG signatures for releases
+   - SLSA attestations for provenance
+   - Artifact digests tracked through pipeline
+
+### Version Management & Conventional Commits
+
+**Cocogitto Configuration** (`cog.toml`):
+
+- **Versioning**: Semantic versioning with conventional commits
+- **Profiles**:
+  - `default`: Stable releases on main branch
+  - `next`: Prerelease versions with `-next` suffix
+  - `dev`: Development builds with timestamp and SHA
+- **Changelog**: Automatic generation from commit history
+- **Hooks**: Pre/post bump hooks for package.json updates
+- **Note**: Version bumping now handled by GitHub Actions (release-core), local hooks for development only
+
+**Conventional Commit Enforcement**:
+
+- Required for proper semantic versioning
+- Types: feat, fix, docs, style, refactor, test, chore, etc.
+- Breaking changes: Include `BREAKING CHANGE:` in commit footer
+- Scope: Optional, e.g., `feat(converter): add celsius support`
+
+### Deployment Targets
+
+**Cloudflare Pages** (`wrangler.toml`):
+
+- **Production**: `main` branch
+  - Environment: `production`
+  - Domain: `fahrenheight.banseljaj.com` (or default Pages domain)
+- **Preview**: `next` branch
+  - Environment: `preview`
+  - Custom domain: `next.fahrenheight.banseljaj.com` (configure in dashboard)
+- **Features**:
+  - Source map uploads enabled
+  - Compatibility date: 2025-11-04
+  - Static site serving from `build/` directory
+
+### CI/CD Best Practices
+
+1. **Fail Fast**: Tests run before builds
+2. **Artifact Reuse**: Build once, deploy multiple times
+3. **Parallel Execution**: Independent jobs run concurrently
+4. **Caching**: Node modules and mise tools cached
+5. **Conditional Execution**: Release/deploy only for appropriate branches
+6. **Comprehensive Logging**: Debug output in all critical steps
+7. **Rollback Support**: Tagged releases enable easy rollback
+8. **Security First**: Multiple scanning layers before deployment
 
 ## Success Criteria
 
