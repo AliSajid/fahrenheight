@@ -223,15 +223,15 @@ runs:
 
               ## Verification
 
-              ```bash
+              \`\`\`bash
               # Get artifact + signatures
               wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip
               wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip.asc
               wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/SHA256SUMS.txt
-              gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
+              gpg --keyserver keyserver.ubuntu.com --recv-keys E9A645792F93A4AC64E3025F30147AA3515A2E41
               gpg --verify ${RELEASE_NAME}.zip.asc ${RELEASE_NAME}.zip
               sha256sum -c SHA256SUMS.txt
-              ```
+              \`\`\`
 
               \`\`\`bash
               # Verify SLSA attestation (GitHub CLI)
