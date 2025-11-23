@@ -12,13 +12,13 @@ inputs:
         description: 'Release channel: stable | next | dev'
         required: true
     gpg_private_key:
-        description: 'ASCII-armored GPG private key. Pass from caller via ${{ secrets.GPG_PRIVATE_KEY }}.'
+        description: 'ASCII-armored GPG private key.'
         required: true
     gpg_passphrase:
-        description: 'Passphrase for the GPG private key. Pass from caller via ${{ secrets.GPG_KEY_PASSPHRASE }}.'
+        description: 'Passphrase for the GPG private key.'
         required: true
     github_token:
-        description: 'GitHub token used to create releases. Pass from caller via ${{ secrets.GITHUB_TOKEN }}.'
+        description: 'GitHub token used to create releases'
         required: true
 outputs:
     release_version:
@@ -33,46 +33,61 @@ outputs:
 runs:
     using: 'composite'
     steps:
-        - name: Harden Runner
-          uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
-          with:
-              disable-sudo: true
-              egress-policy: block
-              allowed-endpoints: |
-                  api.github.com:443
-                  github.com:443
-                  mise.jdx.dev:443
-                  objects.githubusercontent.com:443
-                  registry.npmjs.org:443
-                  uploads.github.com:443
-                  fulcio.sigstore.dev:443
-                  rekor.sigstore.dev:443
-                  tuf-repo-cdn.sigstore.dev:443
-                  keys.openpgp.org:443
+        - name: Validate inputs
+          shell: bash
+          env:
+              GPG_KEY: ${{ inputs.gpg_private_key }}
+              GPG_PASS: ${{ inputs.gpg_passphrase }}
+              GH_TOKEN: ${{ inputs.github_token }}
+              RELEASE_TYPE: ${{ inputs.release_type }}
+          run: |
+              set -e
 
-        - name: Checkout
-          uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-          with:
-              fetch-depth: 0
+              # Validate required secret inputs are not empty
+              if [ -z "$GPG_KEY" ]; then
+                echo "::error::gpg_private_key input is required but not provided"
+                exit 1
+              fi
+
+              if [ -z "$GPG_PASS" ]; then
+                echo "::error::gpg_passphrase input is required but not provided"
+                exit 1
+              fi
+
+              if [ -z "$GH_TOKEN" ]; then
+                echo "::error::github_token input is required but not provided"
+                exit 1
+              fi
+
+              # Validate release_type
+              case "$RELEASE_TYPE" in
+                stable|next|dev)
+                  echo "✓ Valid release_type: $RELEASE_TYPE"
+                  ;;
+                *)
+                  echo "::error::Invalid release_type: $RELEASE_TYPE. Must be: stable, next, or dev"
+                  exit 1
+                  ;;
+              esac
+
+              echo "All required inputs validated"
 
         - name: Setup mise + cog
           uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
           with:
               install_args: --yes
-              mise_toml: |
-                  [tools]
-                  "ubi:cocogitto/cocogitto" = { version = "6.4.0", exe = "cog" }
 
         - name: Download build artifact
           uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
           with:
               artifact-ids: ${{ inputs.artifact_id }}
+              path: build
 
         - name: Inspect download
           shell: bash
           run: |
               echo 'Contents after download:'
-              ls -R . | head -100 || true
+              ls -R build | head -100 || true
 
         - name: Compute version
           id: version
@@ -80,16 +95,59 @@ runs:
           env:
               RELEASE_TYPE: ${{ inputs.release_type }}
           run: |
-              if [[ "$RELEASE_TYPE" == 'dev' ]]; then
-                SHORT_SHA=$(git rev-parse --short HEAD)
+              set -e
+
+              # Discard any changes to mise.toml before bumping
+              git checkout -- mise.toml 2>/dev/null || true
+
+              if [ "$RELEASE_TYPE" = 'dev' ]; then
+                SHORT_SHA=$(git rev-parse --short HEAD | tr -cd 'a-fA-F0-9')
                 TS=$(date +%Y%m%d%H%M%S)
                 BUILD="${TS}+${SHORT_SHA}"
-                VERSION=$(cog bump --patch --pre dev --build "${BUILD}")
-              elif [[ "$RELEASE_TYPE" == 'next' ]]; then
-                VERSION=$(cog bump --auto --pre next)
+                echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
+                echo "[DEBUG] TS=$TS"
+                echo "[DEBUG] SHORT_SHA=$SHORT_SHA"
+                echo "[DEBUG] BUILD=$BUILD"
+                echo "[DEBUG] Running: cog bump --patch --pre dev --build \"$BUILD\""
+                COG_OUTPUT=$(cog bump --patch --pre dev --build "$BUILD" 2>&1)
+                echo "$COG_OUTPUT"
+                VERSION=$(echo "$COG_OUTPUT" | awk '/Bumped version:/ {print $NF}' | tail -n1)
+              elif [ "$RELEASE_TYPE" = 'next' ]; then
+                echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
+                echo "[DEBUG] Running: cog bump --auto --pre next"
+                COG_OUTPUT=$(cog bump --auto --pre next 2>&1)
+                echo "$COG_OUTPUT"
+                VERSION=$(echo "$COG_OUTPUT" | awk '/Bumped version:/ {print $NF}' | tail -n1)
               else
-                VERSION=$(cog bump --auto)
+                echo "[DEBUG] RELEASE_TYPE=$RELEASE_TYPE"
+                echo "[DEBUG] Running: cog bump --auto"
+                COG_OUTPUT=$(cog bump --auto 2>&1)
+                echo "$COG_OUTPUT"
+                VERSION=$(echo "$COG_OUTPUT" | awk '/Bumped version:/ {print $NF}' | tail -n1)
               fi
+
+              # Validate VERSION is not empty
+              if [ -z "$VERSION" ]; then
+                echo "::error::Failed to compute version - cog bump returned empty string"
+                echo "::error::cog output was: $COG_OUTPUT"
+                exit 1
+              fi
+
+              echo "[DEBUG] VERSION=$VERSION"
+
+              # Update package.json version if it exists
+              if [ -f package.json ]; then
+                echo "[DEBUG] Updating package.json version to $VERSION"
+                # Use jq if available, otherwise use sed
+                if command -v jq >/dev/null 2>&1; then
+                  jq --arg ver "$VERSION" '.version = $ver' package.json > package.json.tmp && mv package.json.tmp package.json
+                else
+                  sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" package.json
+
+                fi
+                echo "[DEBUG] package.json version updated"
+              fi
+
               echo "version=$VERSION" >> "$GITHUB_OUTPUT"
               echo "release_name=fahrenheight-$VERSION" >> "$GITHUB_OUTPUT"
               echo "VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -101,12 +159,12 @@ runs:
           shell: bash
           run: |
               # Handle either directory (dev build) or existing zip (next/stable)
-              if [[ -d build-artifact ]]; then
-                zip -r "${RELEASE_NAME}.zip" build-artifact
-              elif [[ -f build-artifact.zip ]]; then
-                mv build-artifact.zip "${RELEASE_NAME}.zip"
+              if [ -d build ]; then
+                zip -r "${RELEASE_NAME}.zip" build
+              elif [ -f build.zip ]; then
+                mv build.zip "${RELEASE_NAME}.zip"
               else
-                echo 'Expected build-artifact directory or build-artifact.zip not found' >&2
+                echo 'Expected build directory or build.zip not found' >&2
                 exit 1
               fi
               echo "ARTIFACT=${RELEASE_NAME}.zip" >> "$GITHUB_ENV"
@@ -175,10 +233,10 @@ runs:
               sha256sum -c SHA256SUMS.txt
               ```
 
-              ```bash
+              \`\`\`bash
               # Verify SLSA attestation (GitHub CLI)
               gh attestation verify ${RELEASE_NAME}.zip --repo ${{ github.repository }}
-              ```
+              \`\`\`
               EOF
               echo "Created release_notes.md" >> "$GITHUB_STEP_SUMMARY"
 
