@@ -145,7 +145,29 @@ fahrenheight/
   export function generateComparisonData(startF: number, endF: number, step: number): ComparisonData[]
   ```
 
-### 4. Main Page Layout
+### 4. Logger Utility
+
+- **Location**: `src/lib/utils/logger.ts`
+- **Purpose**: Development-only logging that automatically suppresses output in production
+- **Usage**:
+
+  ```typescript
+  import { logger } from '$lib/utils/logger'
+
+  // These only log in development (import.meta.env.DEV === true)
+  logger.log('Debug message', data)
+  logger.debug('Debugging info')
+  logger.info('Information')
+  logger.warn('Warning message')
+
+  // Errors always log, even in production
+  logger.error('Error message', error)
+  ```
+
+- **Implementation**: Uses `import.meta.env.DEV` (Vite) to detect environment
+- **Best Practice**: Always use `logger` instead of direct `console.*` calls to prevent debug output in production builds
+
+### 5. Main Page Layout
 
 - **Location**: `src/routes/+page.svelte`
 - **Structure**:
