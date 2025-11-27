@@ -8,4 +8,5 @@ export { default as TemperatureConverter } from './components/TemperatureConvert
 // Utilities
 export { Temperature } from './utils/Temperature.class'
 export { TemperatureConverter as TemperatureConverterUtil } from './utils/TemperatureConverter.class'
+export { logger } from './utils/logger'
 export type { TemperatureUnit, ConversionResult } from './utils/types'

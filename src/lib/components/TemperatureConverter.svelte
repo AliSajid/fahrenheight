@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
     import { Thermometer } from 'lucide-svelte'
     import { TemperatureConverter } from '$lib/utils/TemperatureConverter.class'
     import type { TemperatureUnit } from '$lib/utils/types'
+    import { logger } from '$lib/utils/logger'
 
     // State - Using runes for Svelte 5 reactivity
     let inputValue = $state('')
@@ -33,9 +34,9 @@ SPDX-License-Identifier: MIT
         activeUnit = 'fahrenheit'
     }
 
-    // Debug logging
+    // Debug logging (only in development)
     $effect(() => {
-        console.log('Temperature Converter State:', {
+        logger.log('Temperature Converter State:', {
             inputValue,
             inputStr,
             activeUnit,
