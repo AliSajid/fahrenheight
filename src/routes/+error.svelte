@@ -2,13 +2,13 @@
 <!-- SPDX-License-Identifier: MIT -->
 
 <script lang="ts">
-    import { page } from '$app/stores'
+    import { page } from '$app/state'
     import { resolve } from '$app/paths'
-    import { Home, ArrowLeft } from 'lucide-svelte'
+    import { House, ArrowLeft } from 'lucide-svelte'
 
     // Access error details from page store
-    $: status = $page.status
-    $: errorMessage = $page.error?.message || 'An unexpected error occurred'
+    const status = page.status
+    const errorMessage = page.error?.message || 'An unexpected error occurred'
 
     // Resolve home path for proper base path handling
     const homePath = resolve('/')
@@ -30,9 +30,9 @@
         <!-- Error Message -->
         <h2 class="h2">
             {#if status === 404}
-                Page Not Found
+                Error 404: Page Not Found
             {:else if status === 500}
-                Server Error
+                Error 500: Server Error
             {:else}
                 Error
             {/if}
@@ -50,7 +50,7 @@
         <!-- Action Buttons -->
         <div class="flex gap-4 justify-center flex-wrap">
             <a href={homePath} class="btn variant-filled-primary">
-                <Home size={20} />
+                <House size={20} />
                 <span>Back to Home</span>
             </a>
             <button

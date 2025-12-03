@@ -30,7 +30,21 @@ export const logger = {
             console.warn(...args)
         }
     },
-    // Error should always log, even in production
+    /**
+     * Always logs errors, even in production.
+     *
+     * Rationale:
+     *   - Error logs are critical for diagnosing unexpected failures and monitoring site health.
+     *   - In static/client-side apps, errors may indicate issues with user input, browser compatibility, or runtime bugs.
+     *
+     * Usage:
+     *   - Use `logger.error()` for unexpected failures, critical issues, or when catching exceptions.
+     *   - Prefer logging errors for visibility; throw exceptions if you need to interrupt control flow.
+     *
+     * Privacy/Security:
+     *   - Avoid logging sensitive user data or personally identifiable information (PII).
+     *   - Review error messages to ensure they do not expose internal implementation details or secrets.
+     */
     error: (...args: unknown[]) => {
         console.error(...args)
     }
