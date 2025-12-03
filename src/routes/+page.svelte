@@ -5,9 +5,14 @@ SPDX-License-Identifier: MIT
 -->
 
 <script lang="ts">
-    import { Thermometer, LineChart, Github } from 'lucide-svelte'
+    import { Thermometer, ChartLine } from 'lucide-svelte'
+    import { SiGithub as Github } from '@icons-pack/svelte-simple-icons'
     import { TemperatureConverter } from '$lib'
 </script>
+
+<svelte:head>
+    <title>Temperature Converter</title>
+</svelte:head>
 
 <div class="container mx-auto px-4 py-12">
     <!-- Hero Section -->
@@ -61,13 +66,13 @@ SPDX-License-Identifier: MIT
             <div
                 class="w-full h-48 bg-surface-300-600-token rounded-lg mb-6 flex items-center justify-center"
             >
-                <LineChart
+                <ChartLine
                     class="w-16 h-16 text-surface-500-400-token opacity-50"
                 />
             </div>
 
             <div class="flex items-center gap-4 mb-4">
-                <LineChart class="w-8 h-8 text-secondary-500" />
+                <ChartLine class="w-8 h-8 text-secondary-500" />
                 <h2 class="h2">Approximation Analysis</h2>
             </div>
             <p class="text-surface-600-300-token">

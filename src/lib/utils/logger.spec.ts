@@ -4,7 +4,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// We'll need to mock import.meta.env.DEV for testing
 describe('logger', () => {
     let originalConsole: {
         log: typeof console.log
@@ -38,23 +37,84 @@ describe('logger', () => {
         vi.clearAllMocks()
     })
 
-    it('should be importable', async () => {
-        const { logger } = await import('./logger')
-        expect(logger).toBeDefined()
-        expect(logger.log).toBeDefined()
-        expect(logger.debug).toBeDefined()
-        expect(logger.info).toBeDefined()
-        expect(logger.warn).toBeDefined()
-        expect(logger.error).toBeDefined()
+    describe('in development mode', () => {
+        it('should call console.log when logger.log is called', async () => {
+            const { logger } = await import('./logger')
+            logger.log('test log message', { data: 'value' })
+            expect(console.log).toHaveBeenCalledWith('test log message', {
+                data: 'value'
+            })
+        })
+
+        it('should call console.debug when logger.debug is called', async () => {
+            const { logger } = await import('./logger')
+            logger.debug('debug message', 123)
+            expect(console.debug).toHaveBeenCalledWith('debug message', 123)
+        })
+
+        it('should call console.info when logger.info is called', async () => {
+            const { logger } = await import('./logger')
+            logger.info('info message', true, null)
+            expect(console.info).toHaveBeenCalledWith(
+                'info message',
+                true,
+                null
+            )
+        })
+
+        it('should call console.warn when logger.warn is called', async () => {
+            const { logger } = await import('./logger')
+            logger.warn('warning message', ['array', 'values'])
+            expect(console.warn).toHaveBeenCalledWith('warning message', [
+                'array',
+                'values'
+            ])
+        })
+
+        it('should call console.error when logger.error is called', async () => {
+            const { logger } = await import('./logger')
+            const errorObj = new Error('test error')
+            logger.error('error message', errorObj)
+            expect(console.error).toHaveBeenCalledWith(
+                'error message',
+                errorObj
+            )
+        })
+
+        it('should handle multiple arguments for all methods', async () => {
+            const { logger } = await import('./logger')
+
+            logger.log('arg1', 'arg2', 'arg3', 'arg4')
+            expect(console.log).toHaveBeenCalledWith(
+                'arg1',
+                'arg2',
+                'arg3',
+                'arg4'
+            )
+
+            logger.debug(1, 2, 3)
+            expect(console.debug).toHaveBeenCalledWith(1, 2, 3)
+
+            logger.info({ a: 1 }, { b: 2 })
+            expect(console.info).toHaveBeenCalledWith({ a: 1 }, { b: 2 })
+
+            logger.warn('warn', ['data'])
+            expect(console.warn).toHaveBeenCalledWith('warn', ['data'])
+
+            logger.error('err', 'msg', 123)
+            expect(console.error).toHaveBeenCalledWith('err', 'msg', 123)
+        })
     })
 
-    it('should always call console.error even in production', async () => {
-        const { logger } = await import('./logger')
-        logger.error('test error')
-        expect(console.error).toHaveBeenCalledWith('test error')
+    describe('structure', () => {
+        it('should have all required methods', async () => {
+            const { logger } = await import('./logger')
+            expect(logger).toBeDefined()
+            expect(typeof logger.log).toBe('function')
+            expect(typeof logger.debug).toBe('function')
+            expect(typeof logger.info).toBe('function')
+            expect(typeof logger.warn).toBe('function')
+            expect(typeof logger.error).toBe('function')
+        })
     })
-
-    // Note: Testing DEV vs PROD behavior would require dynamic imports
-    // and module mocking which is complex. The implementation is straightforward
-    // enough that manual testing is sufficient.
 })
