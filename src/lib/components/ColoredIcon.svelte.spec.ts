@@ -53,7 +53,7 @@ describe('ColoredIcon.svelte', () => {
                 { icon: Flame, name: 'Flame', color: '#F97316' },
                 { icon: Heart, name: 'Heart', color: '#EF4444' },
                 { icon: Wrench, name: 'Wrench', color: '#3B82F6' },
-                { icon: ChartLine, name: 'ChartLine', color: '#8B5CF6' },
+                { icon: ChartLine, name: 'ChartLine', color: '#8B5CF6' }
             ]
 
             testCases.forEach(({ icon, name, color }) => {
@@ -101,8 +101,6 @@ describe('ColoredIcon.svelte', () => {
             result.unmount()
         })
     })
-
-
 
     describe('inline styling', () => {
         it('should apply color via inline style attribute with color property', () => {
