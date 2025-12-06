@@ -89,11 +89,18 @@ describe('Footer.svelte', () => {
     })
 
     describe('styling', () => {
-        it('should have proper background, border, and text styling', async () => {
+        it('should have opaque theme-adaptive background colors', async () => {
             render(Footer)
 
             const footer = page.getByRole('contentinfo')
-            await expect.element(footer).toHaveClass(/bg-surface-50-900-token/)
+            await expect.element(footer).toHaveClass(/bg-white/)
+            await expect.element(footer).toHaveClass(/dark:bg-surface-900/)
+        })
+
+        it('should have proper border and text styling', async () => {
+            render(Footer)
+
+            const footer = page.getByRole('contentinfo')
             await expect.element(footer).toHaveClass(/border-t/)
             await expect.element(footer).toHaveClass(/py-3/)
             await expect.element(footer).toHaveClass(/text-xs/)

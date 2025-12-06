@@ -18,7 +18,7 @@ SPDX-License-Identifier: MIT
 </script>
 
 <footer
-    class="fixed bottom-0 left-0 right-0 bg-surface-50-900-token border-t border-surface-300-600-token py-3 text-xs"
+    class="fixed bottom-0 left-0 right-0 bg-white dark:bg-surface-900 border-t border-surface-300-600-token py-3 text-xs"
 >
     <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
