@@ -4,7 +4,7 @@
 <script lang="ts">
     import { page } from '$app/state'
     import { resolve } from '$app/paths'
-    import { House, ArrowLeft } from 'lucide-svelte'
+    import { House, ArrowLeft } from '@lucide/svelte'
 
     // Access error details from page store
     const status = page.status
@@ -68,8 +68,8 @@
                 <h3 class="h3 mb-4">Looking for something?</h3>
                 <p class="text-surface-600-300-token">
                     This site is a simple temperature converter. Try visiting
-                    the <a href={homePath} class="anchor">home page</a> to start
-                    converting temperatures.
+                    the <a href={homePath} class="anchor">home page</a> to start converting
+                    temperatures.
                 </p>
             </div>
         {/if}
