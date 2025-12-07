@@ -34,7 +34,12 @@ describe('Footer.svelte', () => {
         it('should display all technologies with bullet separators', async () => {
             render(Footer)
 
-            const technologies = ['TypeScript', 'SvelteKit', 'Tailwind CSS', 'Skeleton UI']
+            const technologies = [
+                'TypeScript',
+                'SvelteKit',
+                'Tailwind CSS',
+                'Skeleton UI'
+            ]
 
             for (const tech of technologies) {
                 const element = page.getByText(tech, { exact: true })
@@ -51,14 +56,22 @@ describe('Footer.svelte', () => {
             render(Footer)
 
             const builtWith = page.getByText(/built with/i)
-            const authorLink = page.getByRole('link', { name: /ali sajid imami/i })
+            const authorLink = page.getByRole('link', {
+                name: /ali sajid imami/i
+            })
 
             await expect.element(builtWith).toBeInTheDocument()
             await expect.element(authorLink).toBeInTheDocument()
-            await expect.element(authorLink).toHaveAttribute('href', 'https://github.com/AliSajid')
+            await expect
+                .element(authorLink)
+                .toHaveAttribute('href', 'https://github.com/AliSajid')
             await expect.element(authorLink).toHaveAttribute('target', '_blank')
-            await expect.element(authorLink).toHaveAttribute('rel', 'noopener noreferrer')
-            await expect.element(authorLink).toHaveClass(/hover:text-primary-500/)
+            await expect
+                .element(authorLink)
+                .toHaveAttribute('rel', 'noopener noreferrer')
+            await expect
+                .element(authorLink)
+                .toHaveClass(/hover:text-primary-500/)
         })
 
         it('should display emotion icons with aria labels', async () => {
@@ -80,11 +93,18 @@ describe('Footer.svelte', () => {
             render(Footer)
 
             const sourceLabel = page.getByText('Source Code:')
-            const repoLink = page.getByRole('link', { name: /source code repository/i })
+            const repoLink = page.getByRole('link', {
+                name: /source code repository/i
+            })
 
             await expect.element(sourceLabel).toBeInTheDocument()
             await expect.element(repoLink).toBeInTheDocument()
-            await expect.element(repoLink).toHaveAttribute('href', 'https://github.com/AliSajid/fahrenheight')
+            await expect
+                .element(repoLink)
+                .toHaveAttribute(
+                    'href',
+                    'https://github.com/AliSajid/fahrenheight'
+                )
         })
     })
 
