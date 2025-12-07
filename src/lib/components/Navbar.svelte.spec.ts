@@ -21,8 +21,12 @@ describe('Navbar.svelte', () => {
             await expect.element(brandLink).toHaveAttribute('href', '/')
 
             // Navigation links
-            const converterLink = page.getByRole('link', { name: /^converter$/i })
-            const howItWorksLink = page.getByRole('link', { name: /how it works/i })
+            const converterLink = page.getByRole('link', {
+                name: /^converter$/i
+            })
+            const howItWorksLink = page.getByRole('link', {
+                name: /how it works/i
+            })
             const analysisLink = page.getByRole('link', { name: /analysis/i })
 
             await expect.element(converterLink).toBeInTheDocument()
@@ -56,7 +60,9 @@ describe('Navbar.svelte', () => {
             const brandLink = page.getByRole('link', { name: /fahrenheit/i })
 
             await expect.element(brandText).toBeInTheDocument()
-            await expect.element(brandLink).toHaveClass(/hover:text-primary-500/)
+            await expect
+                .element(brandLink)
+                .toHaveClass(/hover:text-primary-500/)
         })
     })
 
