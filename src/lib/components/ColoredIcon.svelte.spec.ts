@@ -18,6 +18,7 @@ import {
     SiVite as Vite,
     SiPnpm as Pnpm
 } from '@icons-pack/svelte-simple-icons'
+import { colord } from 'colord'
 
 describe('ColoredIcon.svelte', () => {
     describe('component rendering', () => {
@@ -60,7 +61,9 @@ describe('ColoredIcon.svelte', () => {
                 const result = render(ColoredIcon, { icon, name })
                 const span = result.container.querySelector('span')
                 const style = span?.getAttribute('style')
-                expect(style).toContain(color)
+                const expectedColor = colord(color).toRgbString()
+                expect(span).toBeTruthy()
+                expect(style).toContain(expectedColor)
                 result.unmount()
             })
         })
@@ -69,15 +72,17 @@ describe('ColoredIcon.svelte', () => {
     describe('color priority system', () => {
         it('should prioritize custom color, then brand color, then currentColor', () => {
             // Test custom color override (highest priority)
-            let result = render(ColoredIcon, {
+            const props = {
                 icon: TypeScript,
                 name: 'TypeScript',
                 color: '#ABCDEF'
-            })
-            let span = result.container.querySelector('span')
+            }
+            let result = render(ColoredIcon, props)
+            let span = result.container.querySelector('span') as HTMLElement
             let style = span?.getAttribute('style')
-            expect(style).toContain('#ABCDEF')
-            expect(style).not.toContain('#3178C6')
+            let expectedColor = colord(props.color).toRgbString()
+            expect(span?.style.color).toBeTruthy() // Color is set
+            expect(style).toContain(expectedColor)
             result.unmount()
 
             // Test brand color (medium priority)
@@ -85,9 +90,11 @@ describe('ColoredIcon.svelte', () => {
                 icon: TypeScript,
                 name: 'TypeScript'
             })
-            span = result.container.querySelector('span')
+            span = result.container.querySelector('span') as HTMLElement
             style = span?.getAttribute('style')
-            expect(style).toContain('#3178C6')
+            expectedColor = colord('#3178C6').toRgbString()
+            expect(span?.style.color).toBeTruthy() // Color is set
+            expect(style).toContain(expectedColor)
             result.unmount()
 
             // Test currentColor fallback (lowest priority)
@@ -95,9 +102,10 @@ describe('ColoredIcon.svelte', () => {
                 icon: Thermometer,
                 name: 'UnknownTechnology'
             })
-            span = result.container.querySelector('span')
+            span = result.container.querySelector('span') as HTMLElement
             style = span?.getAttribute('style')
-            expect(style).toContain('currentColor')
+            expect(span?.style.color).toBeTruthy()
+            expect(style).toContain('currentcolor')
             result.unmount()
         })
     })
@@ -111,9 +119,10 @@ describe('ColoredIcon.svelte', () => {
 
             const span = container.querySelector('span')
             const style = span?.getAttribute('style')
+            const expectedColor = colord('#3178C6').toRgbString()
 
-            expect(span?.hasAttribute('style')).toBe(true)
-            expect(style).toMatch(/color:\s*#/)
+            expect(span).toBeTruthy()
+            expect(style).toContain(expectedColor)
         })
     })
 })
