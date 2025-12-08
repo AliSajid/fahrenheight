@@ -8,37 +8,25 @@ import { render } from 'vitest-browser-svelte'
 import Navbar from './Navbar.svelte'
 
 describe('Navbar.svelte', () => {
-    describe('component structure', () => {
-        it('should render navbar with brand logo and all navigation links', async () => {
+    describe('component structure and navigation', () => {
+        it('should render navbar with brand, icon, and all navigation links with correct hrefs', async () => {
             render(Navbar)
 
             const nav = page.getByRole('navigation')
             await expect.element(nav).toBeInTheDocument()
 
-            // Brand logo
-            const brandLink = page.getByRole('link', { name: /fahrenheit/i })
+            // Brand logo with ColoredIcon
+            const brandLink = page.getByRole('link', { name: /fahrenheight/i })
             await expect.element(brandLink).toBeInTheDocument()
             await expect.element(brandLink).toHaveAttribute('href', '/')
+            await expect.element(brandLink).toHaveClass(/flex/)
+            await expect.element(brandLink).toHaveClass(/items-center/)
 
-            // Navigation links
-            const converterLink = page.getByRole('link', {
-                name: /^converter$/i
-            })
-            const howItWorksLink = page.getByRole('link', {
-                name: /how it works/i
-            })
-            const analysisLink = page.getByRole('link', { name: /analysis/i })
+            // Verify brand text
+            const brandText = page.getByText('Fahrenheight')
+            await expect.element(brandText).toBeInTheDocument()
 
-            await expect.element(converterLink).toBeInTheDocument()
-            await expect.element(howItWorksLink).toBeInTheDocument()
-            await expect.element(analysisLink).toBeInTheDocument()
-        })
-    })
-
-    describe('navigation links', () => {
-        it('should have correct hrefs for all navigation links', async () => {
-            render(Navbar)
-
+            // Navigation links with correct hrefs
             const links = [
                 { name: /^converter$/i, href: '/' },
                 { name: /how it works/i, href: '/how-it-works' },
@@ -47,42 +35,32 @@ describe('Navbar.svelte', () => {
 
             for (const link of links) {
                 const element = page.getByRole('link', { name: link.name })
+                await expect.element(element).toBeInTheDocument()
                 await expect.element(element).toHaveAttribute('href', link.href)
             }
         })
     })
 
-    describe('brand section', () => {
-        it('should display brand name with hover effect', async () => {
-            render(Navbar)
-
-            const brandText = page.getByText('Fahrenheit')
-            const brandLink = page.getByRole('link', { name: /fahrenheit/i })
-
-            await expect.element(brandText).toBeInTheDocument()
-            await expect
-                .element(brandLink)
-                .toHaveClass(/hover:text-primary-500/)
-        })
-    })
-
-    describe('styling', () => {
-        it('should have opaque theme-adaptive background colors', async () => {
+    describe('styling and layout', () => {
+        it('should have opaque background, sticky positioning, and proper layout classes', async () => {
             render(Navbar)
 
             const nav = page.getByRole('navigation')
+
+            // Opaque theme-adaptive background
             await expect.element(nav).toHaveClass(/bg-white/)
             await expect.element(nav).toHaveClass(/dark:bg-surface-900/)
-        })
 
-        it('should have sticky positioning with proper z-index and border', async () => {
-            render(Navbar)
-
-            const nav = page.getByRole('navigation')
+            // Sticky positioning with z-index and border
             await expect.element(nav).toHaveClass(/sticky/)
             await expect.element(nav).toHaveClass(/top-0/)
             await expect.element(nav).toHaveClass(/z-50/)
             await expect.element(nav).toHaveClass(/border-b/)
+
+            // Brand link hover effects
+            const brandLink = page.getByRole('link', { name: /fahrenheight/i })
+            await expect.element(brandLink).toHaveClass(/hover:text-primary-500/)
+            await expect.element(brandLink).toHaveClass(/transition-colors/)
         })
     })
 })
