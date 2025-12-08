@@ -12,6 +12,7 @@ pre-commit = "4.3.0"
 
 [env]
 NODE_ENV = "development"
+CI = false
 '_'.file = { path = ".env" }
 
 [tasks.dev]
