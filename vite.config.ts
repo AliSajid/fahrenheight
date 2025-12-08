@@ -9,6 +9,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vitest/config'
 import { sveltekit } from '@sveltejs/kit/vite'
 import { playwright } from '@vitest/browser-playwright'
+import { env } from 'process'
 
 export default defineConfig({
     plugins: [tailwindcss(), sveltekit(), devtoolsJson()],
@@ -44,7 +45,11 @@ export default defineConfig({
                     browser: {
                         enabled: true,
                         provider: playwright(),
-                        instances: [{ browser: 'chromium' }]
+                        headless: env.CI === 'true' || false,
+                        instances: [
+                            { browser: 'chromium' },
+                            { browser: 'webkit', headless: true },
+                            { browser: 'firefox', headless: true }]
                     },
                     include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
                     exclude: ['e2e/**']

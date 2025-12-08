@@ -46,3 +46,7 @@ playwright-report/
 playwright-results/
 e2e/test-results.json
 e2e/**/*.png
+
+
+# Log files
+*.log
