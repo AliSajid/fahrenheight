@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 
 <svelte:head>
     <link rel="icon" href={favicon} />
-    <title>Fahrenheit Temperature Converter</title>
+    <title>Fahrenheight Temperature Converter</title>
 </svelte:head>
 
 <Navbar />
