@@ -15,7 +15,7 @@ This is a static SvelteKit web application for temperature conversion and analys
 
 - **Framework**: SvelteKit 2.x with Svelte 5
 - **UI Kit**: Skeleton UI 4.x (@skeletonlabs/skeleton + @skeletonlabs/skeleton-svelte)
-- **Icons**: Lucide Svelte (lucide-svelte)
+- **Icons**: Lucide Svelte (@lucide/svelte)
 - **Styling**: Tailwind CSS 4.x
 - **Build Tool**: Vite 7.x
 - **Package Manager**: pnpm 10.x
@@ -177,6 +177,126 @@ fahrenheight/
   - Optional: Information about the approximation formula and when it's useful
   - Responsive design (mobile-friendly)
 
+## Component Architecture
+
+### Layout Components
+
+#### Navbar Component
+
+- **Location**: `src/lib/components/Navbar.svelte`
+- **Purpose**: Sticky navigation bar with brand and page links
+- **Key Features**:
+  - Opaque theme-adaptive background: `bg-white dark:bg-surface-900`
+  - Sticky positioning with `sticky top-0 z-50`
+  - Uses ColoredIcon for thermometer brand icon
+  - Uses NavLink component for navigation items
+  - Hover effects: `hover:text-primary-500`
+- **Sub-components**:
+  - `NavLink.svelte`: Reusable navigation link with active state detection
+
+#### NavLink Component
+
+- **Location**: `src/lib/components/NavLink.svelte`
+- **Purpose**: Navigation link with active state highlighting
+- **Key Features**:
+  - Props: `href`, `label`
+  - Active state derived from `$page.url.pathname`
+  - Conditional styling: `text-primary-500` when active, `text-surface-600-300-token` when inactive
+  - Hover effects and transitions
+
+#### Footer Component
+
+- **Location**: `src/lib/components/Footer.svelte`
+- **Purpose**: Fixed footer with tech stack, attribution, and links
+- **Key Features**:
+  - Opaque theme-adaptive background: `bg-white dark:bg-surface-900`
+  - Three-column grid layout: `grid grid-cols-1 sm:grid-cols-3`
+  - Fixed positioning: `fixed bottom-0 left-0 right-0`
+  - Tech Stack section: Lists TypeScript, SvelteKit, Tailwind CSS, Skeleton UI
+  - Attribution section: "Built with passion, love, and work" with emotion icons
+  - Source Code section: Link to GitHub repository
+  - Bullet separators between tech stack items
+  - All icons sized at 16px for consistency
+
+**Important**: Use opaque backgrounds (`bg-white dark:bg-surface-900`) instead of semi-transparent tokens (`bg-surface-50-900-token`) to prevent content visibility when scrolling.
+
+### Icon Components
+
+#### ColoredIcon Component
+
+- **Location**: `src/lib/components/ColoredIcon.svelte`
+- **Purpose**: Display icons with brand-specific colors
+- **Key Features**:
+  - Supports Lucide icons and Simple Icons
+  - Brand color mapping for technologies (TypeScript: #3178C6, Svelte: #FF3E00, etc.)
+  - color priority: custom prop > brand map > currentColor
+  - Size prop (default: 16)
+  - Inline style for color application
+
+#### TechStackIcon Component
+
+- **Location**: `src/lib/components/TechStackIcon.svelte`
+- **Purpose**: Clickable icon links for technology stack
+- **Key Features**:
+  - Wraps ColoredIcon with link functionality
+  - External links with `target="_blank" rel="noopener noreferrer"`
+  - Hover opacity effect: `opacity-70 hover:opacity-100`
+  - Accessibility: aria-label and sr-only text
+  - Default size: 16px
+
+### Temperature Converter Components
+
+#### TemperatureConverter Component
+
+- **Location**: `src/lib/components/TemperatureConverter.svelte`
+- **Purpose**: Main temperature conversion interface with results display
+- **Key Features**:
+  - Uses ColoredIcon for thermometer header icon
+  - Uses TemperatureInput sub-component for input and unit selection
+  - State management with `$state` and `$derived` runes
+  - Input validation: checks for valid numbers and max 2 decimal places
+  - Displays three result cards: Exact Conversion, Approximate Conversion, Percentage Difference
+  - Color-coded results: `variant-filled-warning` for >5% difference, `variant-filled-success` for ≤5%
+  - Error messages in red (`text-error-500`)
+- **Validation Logic**:
+  - `hasInput`: Checks if input is not empty
+  - `hasValidDecimals`: Ensures max 2 decimal places using regex
+  - `validationError`: Returns specific error messages or null
+- **Event Handlers**: `handleValueChange`, `handleUnitChange` to manage child component state
+
+#### TemperatureInput Component
+
+- **Location**: `src/lib/components/TemperatureInput.svelte`
+- **Purpose**: Input field with unit selection buttons
+- **Key Features**:
+  - Props: `value`, `activeUnit`, `onValueChange`, `onUnitChange`
+  - Text input with `inputmode="decimal"` for mobile keyboards
+  - Button group with °C and °F buttons
+  - Conditional styling with `class:preset-filled-primary-500`
+  - Uses Skeleton UI `btn-group preset-filled-surface-200-800`
+  - Responsive layout: input uses `flex-1`, button group also `flex-1`
+- **Usage Pattern**:
+  ```svelte
+  <TemperatureInput
+      value={inputValue}
+      {activeUnit}
+      onValueChange={handleValueChange}
+      onUnitChange={handleUnitChange}
+  />
+  ```
+
+### Icon Libraries
+
+- **Lucide Svelte**: Import from `'@lucide/svelte'` for UI icons
+
+  - Examples: Thermometer, Heart, Flame, Wrench
+  - Usage: `import { Thermometer } from '@lucide/svelte'`
+
+- **Simple Icons**: Import from `'@icons-pack/svelte-simple-icons'`
+  - Examples: TypeScript, Svelte, GitHub, Tailwind CSS
+  - Usage: `import { SiTypescript as TypeScript } from '@icons-pack/svelte-simple-icons'`
+  - Note: Use aliases for cleaner component names
+
 ## Development Guidelines
 
 ### Svelte 5 Syntax
@@ -192,13 +312,18 @@ fahrenheight/
 - **Use Skeleton UI components** for consistent UI elements (buttons, cards, forms, etc.)
 - **Skeleton UI Classes**:
   - Typography: `h1`, `h2`, `h3` for headings
-  - Buttons: `btn`, `variant-filled-primary`, `variant-ghost-surface`, etc.
-  - Cards: `card`, `variant-glass-surface`, `variant-ghost`
-  - color tokens: `text-primary-500`, `text-surface-600-300-token` (dark mode aware)
-- **Icons**: Use Lucide Svelte components for all icons
+  - Buttons: `btn`, `btn-lg` for sizing
+  - Button variants: Use `preset-filled-*` not `variant-filled-*`
+    - Example: `preset-filled-primary-500`, `preset-filled-surface-200-800`
+  - Cards: `card`, `variant-glass-surface`, `variant-ghost`, `variant-filled-primary`, `variant-filled-secondary`, `variant-filled-warning`, `variant-filled-success`
+  - Conditional classes: Use `class:preset-filled-primary-500={condition}` syntax
+  - Button groups: `btn-group preset-filled-surface-200-800`
+  - Color tokens: `text-primary-500`, `text-error-500`, `text-surface-600-300-token` (dark mode aware)
+- **Icons**: Use ColoredIcon wrapper for consistent icon handling with brand colors
 - **Tailwind utilities**: Use for spacing, layout, and custom styling
 - **Responsive design**: Mobile-first approach with Tailwind breakpoints
 - **Dark mode**: Skeleton UI provides automatic dark mode support via color tokens
+- **Input types**: Use `type="text"` with `inputmode="decimal"` for numeric inputs (allows validation of letters)
 
 ### Type Safety
 
@@ -210,18 +335,58 @@ fahrenheight/
 ### Testing Strategy
 
 1. **Unit Tests** (`*.spec.ts` or `*.test.ts`):
+
    - Test conversion functions thoroughly
    - Test edge cases (0°, negative temps, extreme values)
    - Test error calculations
+
 2. **Component Tests** (Vitest browser mode):
+
    - Test converter input/output behavior
    - Test that typing in one field updates the other
    - Test graph rendering with sample data
+   - **Use vitest-browser-svelte patterns**: `render()` returns `{ container }`, use `container.querySelector()`
+   - **Use page locators for browser tests**: `page.getByRole()`, `page.getByText()`, etc.
 
 3. **E2E Tests** (`e2e/*.test.ts`):
    - Test full user journey
    - Test converter functionality end-to-end
    - Verify graph appears and displays data
+
+### Test Consolidation Guidelines
+
+**Philosophy**: Write fewer, more comprehensive tests that focus on component-specific concerns.
+
+**Key Principles**:
+
+1. **Don't test downstream components** - If ColoredIcon tests handle colors, TechStackIcon doesn't need to test colors again
+2. **Consolidate related assertions** - Test multiple properties of the same rendered element in one test
+3. **Test integration, not implementation** - Focus on how components work together
+4. **Use loops for repetitive checks** - Test multiple similar items in a single test with forEach or for loops
+5. **Group by feature, not by property** - Test all aspects of a feature together
+
+**Examples of Good Consolidation**:
+
+- **Before**: 4 separate tests for span, classList, SVG, size prop
+- **After**: 1 test checking all rendering aspects together
+
+- **Before**: 13 tests for each brand color (one per technology)
+- **After**: 1 test with array of test cases, loop through validating each
+
+- **Before**: Separate tests for href, target, rel attributes on same link
+- **After**: 1 test checking all link attributes together
+
+**Component Test Consolidation Results**:
+
+- ColoredIcon: 27 tests → 4 tests (component structure, brand colors, color priority, styling)
+- TechStackIcon: 48 tests → 13 tests (removed redundant downstream tests)
+- Footer: 35+ tests → 5 tests (structure, tech stack, attribution, source code, styling)
+- Navbar: 16 tests → 2 tests (structure/navigation, styling/layout)
+- NavLink: 4 focused tests (rendering, active state, callbacks)
+- TemperatureConverter: 34 tests → 6 tests (structure, unit selection, conversions, input handling, reactive updates)
+- TemperatureInput: 4 tests (rendering, value display, value change, unit change)
+
+**Test File Naming**: Use `*.spec.ts` for component tests co-located with components
 
 ### Static Site Requirements
 
@@ -289,11 +454,13 @@ All mise tasks execute commands directly:
 For the approximation graph, consider:
 
 1. **Chart.js** (Recommended for simplicity):
+
    - Install: `pnpm add chart.js svelte-chartjs`
    - Good for standard line/scatter charts
    - Lightweight and performant
 
 2. **Custom SVG** (Recommended for learning/control):
+
    - No dependencies
    - Full control over rendering
    - Great for simple line graphs
@@ -495,22 +662,26 @@ A comprehensive release preparation and publishing action that:
 All workflows implement comprehensive security measures:
 
 1. **Harden Runner** (step-security/harden-runner):
+
    - Restricts network egress to allowed endpoints
    - Prevents unauthorized network access
    - Audits network activity
    - Blocks supply chain attacks
 
 2. **Action Pinning**:
+
    - All actions pinned to specific SHA hashes
    - Prevents malicious action updates
    - Example: `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683`
 
 3. **Minimal Permissions**:
+
    - Principle of least privilege
    - Explicit permission declarations per job
    - Read-only by default
 
 4. **Secret Management**:
+
    - Secrets marked with `# pragma: allowlist secret` comment
    - No secrets in logs or outputs
    - GPG keys for signing
