@@ -5,7 +5,9 @@ SPDX-License-Identifier: MIT
 -->
 
 <script lang="ts">
-    import { Thermometer } from 'lucide-svelte'
+    import { Thermometer } from '@lucide/svelte'
+    import ColoredIcon from './ColoredIcon.svelte'
+    import TemperatureInput from './TemperatureInput.svelte'
     import { TemperatureConverter } from '$lib/utils/TemperatureConverter.class'
     import type { TemperatureUnit } from '$lib/utils/types'
 
@@ -15,8 +17,26 @@ SPDX-License-Identifier: MIT
 
     // Derived values - must use let with $derived
     let inputStr = $derived(String(inputValue || ''))
+    let hasInput = $derived(inputStr.trim() !== '')
     let parsedValue = $derived(parseFloat(inputStr))
-    let isValidInput = $derived(!isNaN(parsedValue) && inputStr.trim() !== '')
+
+    // Validation: check if valid number and max 2 decimal places
+    let decimalMatch = $derived(inputStr.match(/\.(\d+)/))
+    let hasValidDecimals = $derived(
+        !hasInput || !decimalMatch || decimalMatch[1].length <= 2
+    )
+
+    let isValidInput = $derived(hasInput && !isNaN(parsedValue) && hasValidDecimals)
+    let validationError = $derived(
+        !hasInput
+            ? null
+            : isNaN(parsedValue)
+              ? 'Please enter a valid number'
+              : !hasValidDecimals
+                ? 'Maximum 2 decimal places allowed'
+                : null
+    )
+
     let result = $derived(
         isValidInput
             ? TemperatureConverter.convert(parsedValue, activeUnit)
@@ -24,13 +44,13 @@ SPDX-License-Identifier: MIT
     )
     let targetUnit = $derived(TemperatureConverter.getOppositeUnit(activeUnit))
 
-    // Button click handlers
-    function setActiveCelsius() {
-        activeUnit = 'celsius'
+    // Event handlers
+    function handleValueChange(value: string) {
+        inputValue = value
     }
 
-    function setActiveFahrenheit() {
-        activeUnit = 'fahrenheit'
+    function handleUnitChange(unit: TemperatureUnit) {
+        activeUnit = unit
     }
 
     // Debug logging
@@ -49,68 +69,21 @@ SPDX-License-Identifier: MIT
 <div class="w-full lg:w-1/2 lg:pr-4">
     <div class="card variant-glass-surface p-8">
         <div class="flex items-center gap-4 mb-6">
-            <Thermometer class="w-8 h-8 text-primary-500" />
+            <ColoredIcon icon={Thermometer} name="Thermometer" size={32} />
             <h2 class="h2">Temperature Converter</h2>
         </div>
 
-        <!-- Input Section -->
-        <div class="mb-6">
-            <label for="temp-input" class="label mb-2">
-                <span>Enter Temperature</span>
-            </label>
-            <input
-                id="temp-input"
-                type="number"
-                bind:value={inputValue}
-                placeholder="Enter a number..."
-                class="input"
-                step="0.01"
-            />
-        </div>
-
-        <!-- Unit Selection Buttons -->
-        <div class="mb-8">
-            <div class="label mb-2">
-                <span>Input Unit</span>
-            </div>
-            <div class="flex gap-4">
-                <button
-                    type="button"
-                    onclick={setActiveCelsius}
-                    class="btn flex-1 border-2 {activeUnit === 'celsius'
-                        ? 'variant-filled-primary border-primary-600 shadow-lg'
-                        : 'variant-ghost-surface border-surface-400-500-token hover:border-primary-500'}"
-                >
-                    Celsius (°C)
-                </button>
-                <button
-                    type="button"
-                    onclick={setActiveFahrenheit}
-                    class="btn flex-1 border-2 {activeUnit === 'fahrenheit'
-                        ? 'variant-filled-primary border-primary-600 shadow-lg'
-                        : 'variant-ghost-surface border-surface-400-500-token hover:border-primary-500'}"
-                >
-                    Fahrenheit (°F)
-                </button>
-            </div>
-        </div>
+        <!-- Input Section with Unit Buttons -->
+        <TemperatureInput
+            value={inputValue}
+            {activeUnit}
+            onValueChange={handleValueChange}
+            onUnitChange={handleUnitChange}
+        />
 
         <!-- Results Section -->
         {#if isValidInput && result}
             <div class="space-y-4">
-                <!-- Input Summary -->
-                <div class="card variant-ghost p-4 text-center">
-                    <p class="text-sm text-surface-600-300-token mb-1">
-                        Input Value
-                    </p>
-                    <p class="text-xl font-bold">
-                        {TemperatureConverter.formatTemperature(
-                            parsedValue,
-                            2
-                        )}{TemperatureConverter.getUnitSymbol(activeUnit)}
-                    </p>
-                </div>
-
                 <!-- Results in a Single Row -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Exact Conversion -->
@@ -173,15 +146,15 @@ SPDX-License-Identifier: MIT
                     </div>
                 </div>
             </div>
-        {:else if inputValue.trim() !== ''}
+        {:else if validationError}
             <div
                 class="card variant-ghost p-4"
                 role="alert"
                 aria-live="assertive"
                 aria-atomic="true"
             >
-                <p class="text-center text-surface-600-300-token">
-                    Please enter a valid number
+                <p class="text-center text-error-500">
+                    {validationError}
                 </p>
             </div>
         {:else}
@@ -191,15 +164,5 @@ SPDX-License-Identifier: MIT
                 </p>
             </div>
         {/if}
-
-        <!-- Information -->
-        <div class="mt-6 p-4 bg-surface-100-800-token rounded-lg">
-            <p class="text-sm text-surface-600-300-token">
-                <strong>Tip:</strong> The approximation formula (F - 30) / 2 ≈ C
-                is a quick mental calculation that works reasonably well for everyday
-                temperatures. The percentage difference shows how accurate this approximation
-                is compared to the exact conversion.
-            </p>
-        </div>
     </div>
 </div>
