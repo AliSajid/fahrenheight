@@ -59,7 +59,9 @@ describe('Navbar.svelte', () => {
 
             // Brand link hover effects
             const brandLink = page.getByRole('link', { name: /fahrenheight/i })
-            await expect.element(brandLink).toHaveClass(/hover:text-primary-500/)
+            await expect
+                .element(brandLink)
+                .toHaveClass(/hover:text-primary-500/)
             await expect.element(brandLink).toHaveClass(/transition-colors/)
         })
     })
