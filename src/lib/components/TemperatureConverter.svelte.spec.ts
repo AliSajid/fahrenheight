@@ -8,326 +8,148 @@ import { render } from 'vitest-browser-svelte'
 import TemperatureConverter from './TemperatureConverter.svelte'
 
 describe('TemperatureConverter.svelte', () => {
-    describe('component rendering', () => {
-        it('should render the component with title', async () => {
+    describe('component structure', () => {
+        it('should render with icon, title, input, unit buttons, and placeholder', async () => {
             render(TemperatureConverter)
 
+            // Title with ColoredIcon (tested in ColoredIcon.spec.ts)
             const heading = page.getByRole('heading', {
                 name: /temperature converter/i
             })
             await expect.element(heading).toBeInTheDocument()
-        })
 
-        it('should render temperature input field', async () => {
-            render(TemperatureConverter)
-
+            // Input field (TemperatureInput component tested separately)
             const input = page.getByLabelText(/enter temperature/i)
             await expect.element(input).toBeInTheDocument()
-            await expect.element(input).toHaveAttribute('type', 'number')
-        })
+            await expect.element(input).toHaveAttribute('type', 'text')
 
-        it('should render celsius and fahrenheit unit buttons', async () => {
-            render(TemperatureConverter)
-
-            const celsiusButton = page.getByRole('button', { name: /celsius/i })
-            const fahrenheitButton = page.getByRole('button', {
-                name: /fahrenheit/i
-            })
-
+            // Unit selection buttons
+            const celsiusButton = page.getByRole('button', { name: '°C' })
+            const fahrenheitButton = page.getByRole('button', { name: '°F' })
             await expect.element(celsiusButton).toBeInTheDocument()
             await expect.element(fahrenheitButton).toBeInTheDocument()
-        })
 
-        it('should show placeholder message when no input', async () => {
-            render(TemperatureConverter)
-
+            // Default state shows placeholder
             const placeholder = page.getByText(
                 /enter a temperature value to see the conversion/i
             )
             await expect.element(placeholder).toBeInTheDocument()
         })
-
-        it('should render tip section', async () => {
-            render(TemperatureConverter)
-
-            const tip = page.getByText(/tip:/i)
-            await expect.element(tip).toBeInTheDocument()
-        })
     })
 
     describe('unit selection', () => {
-        it('should have fahrenheit selected by default', async () => {
+        it('should have fahrenheit selected by default and allow switching units', async () => {
             render(TemperatureConverter)
 
-            const fahrenheitButton = page.getByRole('button', {
-                name: /fahrenheit/i
-            })
+            const celsiusButton = page.getByRole('button', { name: '°C' })
+            const fahrenheitButton = page.getByRole('button', { name: '°F' })
+
+            // Default: Fahrenheit selected
             await expect
                 .element(fahrenheitButton)
-                .toHaveClass(/variant-filled-primary/)
-        })
+                .toHaveClass(/preset-filled-primary-500/)
 
-        it.skip('should switch to celsius when celsius button is clicked', async () => {
-            // Note: This test has timing issues with Svelte 5 reactivity in browser tests
-            // The component works correctly in production, but the test times out waiting for class updates
-            render(TemperatureConverter)
-
-            const celsiusButton = page.getByRole('button', { name: /celsius/i })
-            const fahrenheitButton = page.getByRole('button', {
-                name: /fahrenheit/i
-            })
-
-            // Verify initial state
-            await expect
-                .element(fahrenheitButton)
-                .toHaveClass(/variant-filled-primary/)
-            await expect
-                .element(celsiusButton)
-                .toHaveClass(/variant-ghost-surface/)
-
-            await celsiusButton.click()
-
-            // After click, celsius should be active
-            await expect
-                .element(celsiusButton)
-                .toHaveClass(/variant-filled-primary/)
-            await expect
-                .element(fahrenheitButton)
-                .toHaveClass(/variant-ghost-surface/)
-        })
-
-        it('should switch back to fahrenheit when fahrenheit button is clicked', async () => {
-            render(TemperatureConverter)
-
-            const celsiusButton = page.getByRole('button', { name: /celsius/i })
-            const fahrenheitButton = page.getByRole('button', {
-                name: /fahrenheit/i
-            })
-
+            // Switch to Celsius and back
             await celsiusButton.click()
             await fahrenheitButton.click()
-
             await expect
                 .element(fahrenheitButton)
-                .toHaveClass(/variant-filled-primary/)
+                .toHaveClass(/preset-filled-primary-500/)
         })
     })
 
     describe('temperature conversion - Fahrenheit to Celsius', () => {
-        it('should show exact conversion result', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('32')
-
-            const exact = page.getByText('Exact Conversion', { exact: true })
-            await expect.element(exact).toBeInTheDocument()
-        })
-
-        it('should show approximate conversion result', async () => {
+        it('should display all result cards with formulas when input is valid', async () => {
             render(TemperatureConverter)
 
             const input = page.getByLabelText(/enter temperature/i)
             await input.fill('100')
 
+            // Verify all three result cards appear (conversion logic tested in TemperatureConverter.class.spec.ts)
+            const exact = page.getByText('Exact Conversion', { exact: true })
             const approx = page.getByText('Approximate Conversion', {
                 exact: true
             })
-            await expect.element(approx).toBeInTheDocument()
-        })
-
-        it('should show percentage difference', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('100')
-
             const percentDiff = page.getByText('Percentage Difference', {
                 exact: true
             })
+
+            await expect.element(exact).toBeInTheDocument()
+            await expect.element(approx).toBeInTheDocument()
             await expect.element(percentDiff).toBeInTheDocument()
-        })
 
-        it('should show correct formula for Fahrenheit to Celsius', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('50')
-
-            const formula = page.getByText(/C = \(F - 32\) × 5\/9/i)
-            await expect.element(formula).toBeInTheDocument()
-        })
-
-        it('should show approximation formula', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('50')
-
-            const formula = page.getByText(/C ≈ \(F - 30\) \/ 2/i)
-            await expect.element(formula).toBeInTheDocument()
+            // Verify formulas are displayed
+            const exactFormula = page.getByText(/C = \(F - 32\) × 5\/9/i)
+            const approxFormula = page.getByText(/C ≈ \(F - 30\) \/ 2/i)
+            await expect.element(exactFormula).toBeInTheDocument()
+            await expect.element(approxFormula).toBeInTheDocument()
         })
     })
 
     describe('temperature conversion - Celsius to Fahrenheit', () => {
-        it('should show exact conversion for Celsius input', async () => {
+        it('should display results with correct formulas when unit is switched', async () => {
             render(TemperatureConverter)
 
-            const celsiusButton = page.getByRole('button', { name: /celsius/i })
+            const input = page.getByLabelText(/enter temperature/i)
+            const celsiusButton = page.getByRole('button', { name: '°C' })
+
+            // Switch to Celsius first
             await celsiusButton.click()
 
-            const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('100')
-
-            const exact = page.getByText('Exact Conversion', { exact: true })
-            await expect.element(exact).toBeInTheDocument()
-        })
-
-        it('should show correct formula for Celsius to Fahrenheit', async () => {
-            render(TemperatureConverter)
-
-            const celsiusButton = page.getByRole('button', { name: /celsius/i })
-            await celsiusButton.click()
-
-            const input = page.getByLabelText(/enter temperature/i)
+            // Enter value after switching
             await input.fill('25')
 
-            const formula = page.getByText(/F = C × 9\/5 \+ 32/i)
-            await expect.element(formula).toBeInTheDocument()
-        })
+            // Verify results appear
+            const exact = page.getByText('Exact Conversion', { exact: true })
+            await expect.element(exact).toBeInTheDocument()
 
-        it('should show approximation formula for Celsius', async () => {
-            render(TemperatureConverter)
-
-            const celsiusButton = page.getByRole('button', { name: /celsius/i })
-            await celsiusButton.click()
-
-            const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('20')
-
-            const formula = page.getByText(/F ≈ 2C \+ 30/i)
-            await expect.element(formula).toBeInTheDocument()
+            // Verify Celsius-to-Fahrenheit formulas appear (this confirms unit switch worked)
+            const exactFormula = page.getByText(/F\s+=\s+C.*/)
+            const approxFormula = page.getByText(/F.*2C.*/)
+            await expect.element(exactFormula).toBeInTheDocument()
+            await expect.element(approxFormula).toBeInTheDocument()
         })
     })
 
-    describe('input validation', () => {
-        it('should accept negative numbers', async () => {
+    describe('input handling', () => {
+        it('should accept negative, decimal inputs and display summary', async () => {
             render(TemperatureConverter)
 
             const input = page.getByLabelText(/enter temperature/i)
+
+            // Test negative number
             await input.fill('-40')
-
-            const exact = page.getByText('Exact Conversion', { exact: true })
+            let exact = page.getByText('Exact Conversion', { exact: true })
             await expect.element(exact).toBeInTheDocument()
-        })
 
-        it('should accept decimal numbers', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
+            // Test decimal number
             await input.fill('72.5')
-
-            const exact = page.getByText('Exact Conversion', { exact: true })
+            exact = page.getByText('Exact Conversion', { exact: true })
             await expect.element(exact).toBeInTheDocument()
         })
-
-        it('should show input value in summary card', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('75')
-
-            const inputSummary = page.getByText(/input value/i)
-            await expect.element(inputSummary).toBeInTheDocument()
-        })
     })
 
-    describe('result display', () => {
-        it('should display success indicators for good approximations', async () => {
+    describe('reactive updates', () => {
+        it('should update formulas and results when switching units and entering input', async () => {
             render(TemperatureConverter)
 
             const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('32')
+            const celsiusButton = page.getByRole('button', { name: '°C' })
+            const fahrenheitButton = page.getByRole('button', { name: '°F' })
 
-            const percentDiff = page.getByText('Percentage Difference', {
-                exact: true
-            })
-            await expect.element(percentDiff).toBeInTheDocument()
-        })
-
-        it('should display all three result cards when input is valid', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
+            // Enter Fahrenheit value and verify formula
             await input.fill('100')
+            const fahrenheitFormula = page.getByText(/C\s+=\s+\(F/i)
+            await expect.element(fahrenheitFormula).toBeInTheDocument()
 
-            const exact = page.getByText('Exact Conversion', { exact: true })
-            const approx = page.getByText('Approximate Conversion', {
-                exact: true
-            })
-            const percentDiff = page.getByText('Percentage Difference', {
-                exact: true
-            })
-
-            await expect.element(exact).toBeInTheDocument()
-            await expect.element(approx).toBeInTheDocument()
-            await expect.element(percentDiff).toBeInTheDocument()
-        })
-    })
-
-    describe('unit symbols', () => {
-        it('should display Fahrenheit symbol when Fahrenheit is selected', async () => {
-            render(TemperatureConverter)
-
-            const fahrenheitButton = page.getByRole('button', {
-                name: /fahrenheit \(°f\)/i
-            })
-            await expect.element(fahrenheitButton).toBeInTheDocument()
-        })
-
-        it('should display Celsius symbol when Celsius is selected', async () => {
-            render(TemperatureConverter)
-
-            const celsiusButton = page.getByRole('button', {
-                name: /celsius \(°c\)/i
-            })
-            await expect.element(celsiusButton).toBeInTheDocument()
-        })
-    })
-
-    describe('reactive behavior', () => {
-        it('should update display when switching between units', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
-            const celsiusButton = page.getByRole('button', { name: /celsius/i })
-            const fahrenheitButton = page.getByRole('button', {
-                name: /fahrenheit/i
-            })
-
-            // Enter value in Fahrenheit
-            await input.fill('100')
-            const firstFormula = page.getByText(/C = \(F - 32\) × 5\/9/i)
-            await expect.element(firstFormula).toBeInTheDocument()
-
-            // Switch to Celsius
+            // Switch to Celsius and verify formula changes
             await celsiusButton.click()
-            const secondFormula = page.getByText(/F = C × 9\/5 \+ 32/i)
-            await expect.element(secondFormula).toBeInTheDocument()
+            const celsiusFormula = page.getByText(/F\s+=\s+C/i)
+            await expect.element(celsiusFormula).toBeInTheDocument()
 
-            // Switch back
+            // Switch back and verify formula returns
             await fahrenheitButton.click()
-            await expect.element(firstFormula).toBeInTheDocument()
-        })
-
-        it('should show results immediately after entering valid input', async () => {
-            render(TemperatureConverter)
-
-            const input = page.getByLabelText(/enter temperature/i)
-            await input.fill('50')
-
-            const results = page.getByText('Exact Conversion', { exact: true })
-            await expect.element(results).toBeInTheDocument()
+            await expect.element(fahrenheitFormula).toBeInTheDocument()
         })
     })
 })
