@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts">
     import { page } from '$app/state'
+    import { resolve } from '$app/paths'
 
     interface Props {
         href: string
@@ -18,7 +19,7 @@ SPDX-License-Identifier: MIT
 </script>
 
 <a
-    {href}
+    href={resolve(href)}
     class="text-sm font-medium hover:text-primary-500 transition-colors {isActive
         ? 'text-primary-500'
         : 'text-surface-600-300-token'}"
