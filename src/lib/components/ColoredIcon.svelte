@@ -5,12 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <script lang="ts">
-    import type { Icon as IconTypeLucide } from '@lucide/svelte'
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    type IconTypeSimpleIcons = any
-
-    type IconType = IconTypeLucide | IconTypeSimpleIcons
+    import type { IconType } from './types'
 
     interface Props {
         icon: IconType

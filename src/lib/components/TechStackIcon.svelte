@@ -5,10 +5,11 @@ SPDX-License-Identifier: MIT
 -->
 
 <script lang="ts">
+    import type { IconType } from './types'
     import ColoredIcon from './ColoredIcon.svelte'
 
     interface Props {
-        icon: any
+        icon: IconType
         name: string
         url: string
         size?: number
