@@ -16,6 +16,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/AliSajid/fahrenheight?include_prereleases&logo=github)](https://github.com/AliSajid/fahrenheight/releases)
 [![GitHub License](https://img.shields.io/github/license/AliSajid/fahrenheight?logo=opensourceinitiative)](LICENSE)
 [![REUSE Compliance](https://api.reuse.software/badge/github.com/AliSajid/fahrenheight)](https://api.reuse.software/info/github.com/AliSajid/fahrenheight)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9999/badge)](https://www.bestpractices.dev/projects/9999)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?logo=conventionalcommits)](https://conventionalcommits.org)
 
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-2.x-ff3e00?logo=svelte&logoColor=white)](https://svelte.dev/)
@@ -33,9 +34,12 @@
 
 ## 🌡️ Overview
 
-A static SvelteKit web application demonstrating:
+A **first-party website** - a personal temperature conversion tool built as a static SvelteKit web application. The source code is open source for transparency and as an educational resource demonstrating modern web development practices.
+
+**Features:**
 
 1. **Dynamic Bidirectional Temperature Conversion** (Celsius ↔ Fahrenheit)
+
    - Real-time conversion as you type
    - Exact mathematical formulas
    - Input validation and error handling
@@ -60,7 +64,11 @@ Built with modern web technologies: **SvelteKit 2.x**, **Svelte 5** (with runes)
 - 🔐 **Signed Releases**: GPG signatures and SLSA attestations
 - 📊 **Comprehensive Testing**: Unit tests (Vitest) and E2E tests (Playwright)
 
-## 🚀 Quick Start
+## 🚀 Using the Application
+
+**Live Application**: Visit the hosted version at the production URL (deployed via Cloudflare Pages).
+
+**For Development/Exploration** (if you want to explore the code or contribute):
 
 ### Prerequisites
 
@@ -68,7 +76,7 @@ Built with modern web technologies: **SvelteKit 2.x**, **Svelte 5** (with runes)
 - [pnpm](https://pnpm.io/) 10.x package manager
 - [mise](https://mise.jdx.dev/) task runner (recommended for development)
 
-### Installation
+### Local Setup
 
 1. **Clone the repository**
 
@@ -270,17 +278,20 @@ This project implements a comprehensive CI/CD pipeline with multiple stages:
 ### Pipeline Stages
 
 1. **Test** - Comprehensive quality checks
+
    - ESLint and Prettier validation
    - TypeScript type checking with svelte-check
    - Unit tests with Vitest (browser mode)
    - E2E tests with Playwright
 
 2. **Build & Package** - Static site generation
+
    - Builds production-ready static assets
    - Creates compressed artifacts
    - Generates artifact digests for provenance
 
 3. **Release** - Automated versioning and release creation
+
    - Semantic versioning via Cocogitto (conventional commits)
    - GPG-signed releases
    - SLSA build provenance attestations
@@ -312,78 +323,56 @@ This project implements a comprehensive CI/CD pipeline with multiple stages:
 - **SLSA Attestations**: Build provenance for supply chain verification
 - **Secret Scanning**: Automated detection of exposed secrets
 
-## 🔐 Release Verification
+## 🔐 Security
 
-All releases are signed with GPG and include SLSA attestations. To verify a release:
+Security is a top priority for this project. We implement multiple layers of security controls:
 
-```bash
-# Download release artifacts
-wget https://github.com/AliSajid/fahrenheight/releases/download/v1.0.0/fahrenheight-1.0.0.zip
-wget https://github.com/AliSajid/fahrenheight/releases/download/v1.0.0/fahrenheight-1.0.0.zip.asc
-wget https://github.com/AliSajid/fahrenheight/releases/download/v1.0.0/SHA256SUMS.txt
+- **Automated Security Scanning**: CodeQL, OSSF Scorecard, SonarCloud
+- **Signed Releases**: All releases include GPG signatures and SLSA attestations
+- **Dependency Monitoring**: Automated vulnerability scanning and updates
+- **Secure CI/CD**: Hardened workflows with network egress restrictions
 
-# Import GPG key
-gpg --keyserver keys.openpgp.org --recv-keys <KEY_ID>
+### Reporting Security Vulnerabilities
 
-# Verify GPG signature
-gpg --verify fahrenheight-1.0.0.zip.asc fahrenheight-1.0.0.zip
+If you discover a security vulnerability, please email [security@imamiland.com](mailto:security@imamiland.com) with details. We will respond within 48 hours and provide a detailed response within 5 business days.
 
-# Verify checksum
-sha256sum -c SHA256SUMS.txt
+For more information, see our [Security Policy](SECURITY.md).
 
-# Verify SLSA attestation (requires GitHub CLI)
-gh attestation verify fahrenheight-1.0.0.zip --repo AliSajid/fahrenheight
-```
+### Release Verification
+
+All releases are signed and can be verified. See [SECURITY.md](SECURITY.md) for verification instructions.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these guidelines:
+**Project Context**: This is a first-party website project - a personal tool maintained by the repository owner. The source code is open for transparency and educational purposes.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feat/amazing-feature`)
-3. Make your changes
-4. Follow conventional commit messages:
-   - `feat:` for new features
-   - `fix:` for bug fixes
-   - `docs:` for documentation changes
-   - `style:` for formatting changes
-   - `refactor:` for code refactoring
-   - `test:` for test additions/changes
-   - `chore:` for maintenance tasks
-5. Run tests and quality checks: `mise ci`
-6. Commit your changes: `cog commit <type> "description"`
-7. Push to your branch: `git push origin feat/amazing-feature`
-8. Open a Pull Request
+**Contributions Welcome**: While this is primarily a personal project, contributions are appreciated, especially:
 
-### Development Setup for Contributors
+- Bug fixes and security improvements
+- Documentation enhancements
+- Code quality and accessibility improvements
+- Performance optimizations
 
-```bash
-# Clone your fork
-git clone https://github.com/YOUR_USERNAME/fahrenheight.git
-cd fahrenheight
+Please note that feature requests may be limited to the core temperature conversion purpose. The project owner maintains final decision on all changes.
 
-# Add upstream remote
-git remote add upstream https://github.com/AliSajid/fahrenheight.git
+For detailed information, see [Contributing Guidelines](CONTRIBUTING.md).
 
-# Install mise and dependencies
-mise install
+### Quick Start for Contributors
 
-# Create a feature branch
-git checkout -b feat/my-feature
+1. Read the [Code of Conduct](CODE_OF_CONDUCT.md)
+2. Check existing [Issues](https://github.com/AliSajid/fahrenheight/issues) and [Pull Requests](https://github.com/AliSajid/fahrenheight/pulls)
+3. Fork the repository and create a feature branch
+4. Make your changes following our [Style Guide](CONTRIBUTING.md#style-guides)
+5. Run `mise ci` to validate your changes
+6. Submit a pull request with a clear description
 
-# Make changes and test
-mise dev
-mise ci
-
-# Commit with conventional commits
-cog commit feat "add new feature"
-```
+For security vulnerabilities, please email [security@imamiland.com](mailto:security@imamiland.com) instead of opening a public issue.
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE-MIT](LICENSE-MIT) file for details.
 
-The project follows the [REUSE 3.0 specification](https://reuse.software/) for comprehensive license compliance.
+The project follows the [REUSE 3.0 specification](https://reuse.software/) for comprehensive license compliance. All source code files include SPDX license identifiers.
 
 ## 🙏 Acknowledgments
 
@@ -393,7 +382,18 @@ The project follows the [REUSE 3.0 specification](https://reuse.software/) for c
 - Hosted on [Cloudflare Pages](https://pages.cloudflare.com/)
 - Security scanning by [CodeQL](https://codeql.github.com/) and [SonarCloud](https://sonarcloud.io/)
 
-## 📚 Learn More
+## 📚 Documentation
+
+### Project Documentation
+
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
+- [Code of Conduct](CODE_OF_CONDUCT.md) - Community standards and expectations
+- [Security Policy](SECURITY.md) - Security practices and vulnerability reporting
+- [Governance](GOVERNANCE.md) - Project governance and decision-making
+- [Security Review](SECURITY_REVIEW.md) - Comprehensive security assessment
+- [Security Assurance](SECURITY_ASSURANCE.md) - Security assurance case
+
+### Technology Documentation
 
 - [SvelteKit Documentation](https://svelte.dev/docs/kit) - Learn about SvelteKit features
 - [Svelte 5 Documentation](https://svelte.dev/docs/svelte/overview) - Explore Svelte 5 runes
@@ -401,12 +401,16 @@ The project follows the [REUSE 3.0 specification](https://reuse.software/) for c
 - [Conventional Commits](https://www.conventionalcommits.org/) - Commit message format
 - [REUSE Specification](https://reuse.software/spec/) - License compliance
 - [SLSA Framework](https://slsa.dev/) - Supply chain security
+- [OpenSSF Best Practices](https://www.bestpractices.dev/) - Open source security criteria
 
 ## 📞 Contact & Support
 
-- **Issues**: [GitHub Issues](https://github.com/AliSajid/fahrenheight/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/AliSajid/fahrenheight/discussions)
-- **Security**: For security issues, please see [SECURITY.md](SECURITY.md)
+- **Issues & Bugs**: [GitHub Issues](https://github.com/AliSajid/fahrenheight/issues)
+- **Questions & Discussions**: [GitHub Discussions](https://github.com/AliSajid/fahrenheight/discussions)
+- **Security Vulnerabilities**: [security@imamiland.com](mailto:security@imamiland.com) - see [SECURITY.md](SECURITY.md)
+- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Code of Conduct**: See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- **Governance**: See [GOVERNANCE.md](GOVERNANCE.md)
 
 ---
 
