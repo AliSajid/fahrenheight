@@ -81,7 +81,8 @@ SPDX-License-Identifier: MIT
                         href="https://github.com/AliSajid"
                         class="font-semibold hover:text-primary-500 transition-colors"
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noopener noreferrer external-link"
+                        aria-label="Github Profile"
                     >
                         Ali Sajid Imami
                     </a>
