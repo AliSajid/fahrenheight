@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 <script lang="ts">
     import { Thermometer } from '@lucide/svelte'
-    import { resolve } from '$app/paths'
     import ColoredIcon from './ColoredIcon.svelte'
     import NavLink from './NavLink.svelte'
 
@@ -24,7 +23,8 @@ SPDX-License-Identifier: MIT
         <div class="flex items-center justify-between h-16">
             <!-- Logo/Brand -->
             <a
-                href={resolve('/')}
+                href="/"
+                data-sveltekit-preload-data="hover"
                 class="flex items-center gap-2 font-semibold text-lg hover:text-primary-500 transition-colors"
             >
                 <ColoredIcon icon={Thermometer} name="Thermometer" size={24} />
