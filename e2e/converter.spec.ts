@@ -18,21 +18,17 @@ test.describe('Temperature Converter', () => {
 
     test('should have unit selection buttons', async ({ page }) => {
         await page.goto('/')
-        await expect(
-            page.getByRole('button', { name: /Celsius/i })
-        ).toBeVisible()
-        await expect(
-            page.getByRole('button', { name: /Fahrenheit/i })
-        ).toBeVisible()
+        await expect(page.getByRole('button', { name: '°C' })).toBeVisible()
+        await expect(page.getByRole('button', { name: '°F' })).toBeVisible()
     })
 
     test('should convert fahrenheit to celsius', async ({ page }) => {
         await page.goto('/')
 
         // Fahrenheit should be selected by default
-        await expect(
-            page.getByRole('button', { name: /Fahrenheit/i })
-        ).toHaveClass(/variant-filled-primary/)
+        await expect(page.getByRole('button', { name: '°F' })).toHaveClass(
+            /preset-filled-primary-500/
+        )
 
         // Enter a value
         await page.getByLabel('Enter Temperature').fill('86')
@@ -51,10 +47,10 @@ test.describe('Temperature Converter', () => {
         await page.goto('/')
 
         // Switch to Celsius
-        await page.getByRole('button', { name: /Celsius/i }).click()
-        await expect(
-            page.getByRole('button', { name: /Celsius/i })
-        ).toHaveClass(/variant-filled-primary/)
+        await page.getByRole('button', { name: '°C' }).click()
+        await expect(page.getByRole('button', { name: '°C' })).toHaveClass(
+            /preset-filled-primary-500/
+        )
 
         // Enter a value
         await page.getByLabel('Enter Temperature').fill('25')
@@ -87,7 +83,7 @@ test.describe('Temperature Converter', () => {
         await expect(page.getByText('0.00°C')).toBeVisible()
 
         // Switch to Celsius
-        await page.getByRole('button', { name: /Celsius/i }).click()
+        await page.getByRole('button', { name: '°C' }).click()
         await expect(page.getByText('89.60°F')).toBeVisible()
     })
 
