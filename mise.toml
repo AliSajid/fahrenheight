@@ -12,6 +12,7 @@ pre-commit = "4.3.0"
 
 [env]
 NODE_ENV = "development"
+CI = false
 '_'.file = { path = ".env" }
 
 [tasks.dev]
@@ -55,16 +56,36 @@ description = "Check code formatting with Prettier (no changes)"
 run = "pnpm exec prettier --check ."
 
 [tasks.test]
-description = "Run all tests (unit + e2e)"
-run = "pnpm exec vitest --run && pnpm exec playwright test"
+description = "Run all tests (unit + browser + e2e)"
+run = "pnpm exec vitest run && pnpm exec playwright test"
 
 [tasks.test-unit]
-description = "Run unit tests with Vitest"
-run = "pnpm exec vitest"
+description = "Run unit tests with Vitest (node environment)"
+run = "pnpm exec vitest run --project=unit"
+
+[tasks.test-browser]
+description = "Run browser tests with Vitest (Svelte components)"
+run = "pnpm exec vitest run --project=browser"
+
+[tasks.test-vitest]
+description = "Run all Vitest tests (unit + browser)"
+run = "pnpm exec vitest run"
 
 [tasks.test-e2e]
 description = "Run E2E tests with Playwright"
 run = "pnpm exec playwright test"
+
+[tasks.test-coverage]
+description = "Run all Vitest tests with coverage"
+run = "pnpm exec vitest run --coverage"
+
+[tasks.test-unit-coverage]
+description = "Run unit tests with coverage"
+run = "pnpm exec vitest run --project=unit --coverage"
+
+[tasks.test-browser-coverage]
+description = "Run browser tests with coverage"
+run = "pnpm exec vitest run --project=browser --coverage"
 
 [tasks.install]
 description = "Install dependencies"

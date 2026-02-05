@@ -28,7 +28,10 @@ export default defineConfig(
         rules: {
             // typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
             // see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
-            'no-undef': 'off'
+            'no-undef': 'off',
+            // Disable overly strict navigation rule - we use data-sveltekit-preload-data for internal links
+            // and proper rel attributes for external links, which is the recommended SvelteKit pattern
+            'svelte/no-navigation-without-resolve': 'off'
         }
     },
     {
