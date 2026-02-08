@@ -5,6 +5,7 @@
 // Components
 export { default as TemperatureConverter } from './components/TemperatureConverter.svelte'
 export { default as TemperatureInput } from './components/TemperatureInput.svelte'
+export { default as TemperatureGraph } from './components/TemperatureGraph.svelte'
 export { default as HeroSection } from './components/HeroSection.svelte'
 export { default as Footer } from './components/Footer.svelte'
 export { default as Navbar } from './components/Navbar.svelte'

@@ -21,7 +21,7 @@ SPDX-License-Identifier: MIT
 <a
     href={url}
     target="_blank"
-    rel="noopener noreferrer external"
+    rel="noopener noreferrer"
     class="transition-all opacity-70 hover:opacity-100 inline-block"
     aria-label={name}
 >

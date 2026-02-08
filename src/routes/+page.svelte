@@ -13,15 +13,15 @@ SPDX-License-Identifier: MIT
     <title>Temperature Converter</title>
 </svelte:head>
 
-<div class="min-h-[calc(100vh-4rem-3.5rem)] flex flex-col">
+<div class="h-[calc(100vh-4rem-3.5rem)] flex flex-col overflow-hidden">
     <div
-        class="container mx-auto px-4 pt-4 flex-1 flex flex-col justify-center"
+        class="container mx-auto px-4 py-4 flex-1 flex flex-col overflow-hidden"
     >
         <!-- Hero Section -->
         <HeroSection />
 
         <!-- Temperature Converter -->
-        <section>
+        <section class="flex-1 overflow-hidden">
             <TemperatureConverter />
         </section>
     </div>
