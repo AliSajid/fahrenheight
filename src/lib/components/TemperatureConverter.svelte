@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
     import { Thermometer } from '@lucide/svelte'
     import ColoredIcon from './ColoredIcon.svelte'
     import TemperatureInput from './TemperatureInput.svelte'
+    import TemperatureGraph from './TemperatureGraph.svelte'
     import { TemperatureConverter } from '$lib/utils/TemperatureConverter.class'
     import type { TemperatureUnit } from '$lib/utils/types'
 
@@ -26,7 +27,9 @@ SPDX-License-Identifier: MIT
         !hasInput || !decimalMatch || decimalMatch[1].length <= 2
     )
 
-    let isValidInput = $derived(hasInput && !isNaN(parsedValue) && hasValidDecimals)
+    let isValidInput = $derived(
+        hasInput && !isNaN(parsedValue) && hasValidDecimals
+    )
     let validationError = $derived(
         !hasInput
             ? null
@@ -66,103 +69,148 @@ SPDX-License-Identifier: MIT
     })
 </script>
 
-<div class="w-full lg:w-1/2 lg:pr-4">
-    <div class="card variant-glass-surface p-8">
-        <div class="flex items-center gap-4 mb-6">
-            <ColoredIcon icon={Thermometer} name="Thermometer" size={32} />
-            <h2 class="h2">Temperature Converter</h2>
+<div class="w-full h-full flex flex-col overflow-hidden">
+    <div
+        class="card variant-glass-surface p-4 flex-1 flex flex-col overflow-hidden"
+    >
+        <div class="flex items-center gap-3 mb-4">
+            <ColoredIcon icon={Thermometer} name="Thermometer" size={24} />
+            <h2 class="text-xl font-bold">Temperature Converter</h2>
         </div>
 
-        <!-- Input Section with Unit Buttons -->
-        <TemperatureInput
-            value={inputValue}
-            {activeUnit}
-            onValueChange={handleValueChange}
-            onUnitChange={handleUnitChange}
-        />
+        <!-- Two Column Layout -->
+        <div
+            class="flex flex-col lg:flex-row gap-4 lg:items-stretch flex-1 overflow-hidden"
+        >
+            <!-- Left Side: Input and Results -->
+            <div class="lg:w-1/2 flex flex-col space-y-4">
+                <!-- Input Section with Unit Buttons -->
+                <TemperatureInput
+                    value={inputValue}
+                    {activeUnit}
+                    onValueChange={handleValueChange}
+                    onUnitChange={handleUnitChange}
+                />
 
-        <!-- Results Section -->
-        {#if isValidInput && result}
-            <div class="space-y-4">
-                <!-- Results in a Single Row -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Exact Conversion -->
-                    <div class="card variant-filled-primary p-4 text-center">
-                        <p class="text-xs opacity-80 mb-2">Exact Conversion</p>
-                        <p class="text-xl font-bold mb-1">
-                            {TemperatureConverter.formatTemperature(
-                                result.exact,
-                                2
-                            )}{TemperatureConverter.getUnitSymbol(targetUnit)}
-                        </p>
-                        <p class="text-xs opacity-70">
-                            {activeUnit === 'celsius'
-                                ? 'F = C × 9/5 + 32'
-                                : 'C = (F - 32) × 5/9'}
-                        </p>
+                <!-- Results Cards -->
+                {#if isValidInput && result}
+                    <div class="grid grid-cols-1 gap-4 flex-1">
+                        <!-- Exact Conversion -->
+                        <div
+                            class="card variant-filled-primary p-4 text-center"
+                        >
+                            <p class="text-xs opacity-80 mb-2">
+                                Exact Conversion
+                            </p>
+                            <p class="text-xl font-bold mb-1">
+                                {TemperatureConverter.formatTemperature(
+                                    result.exact,
+                                    2
+                                )}{TemperatureConverter.getUnitSymbol(
+                                    targetUnit
+                                )}
+                            </p>
+                            <p class="text-xs opacity-70">
+                                {activeUnit === 'celsius'
+                                    ? 'F = C × 9/5 + 32'
+                                    : 'C = (F - 32) × 5/9'}
+                            </p>
+                        </div>
+
+                        <!-- Approximate Conversion -->
+                        <div
+                            class="card variant-filled-secondary p-4 text-center"
+                        >
+                            <p class="text-xs opacity-80 mb-2">
+                                Approximate Conversion
+                            </p>
+                            <p class="text-xl font-bold mb-1">
+                                {TemperatureConverter.formatTemperature(
+                                    result.approximate,
+                                    2
+                                )}{TemperatureConverter.getUnitSymbol(
+                                    targetUnit
+                                )}
+                            </p>
+                            <p class="text-xs opacity-70">
+                                {activeUnit === 'celsius'
+                                    ? 'F ≈ 2C + 30'
+                                    : 'C ≈ (F - 30) / 2'}
+                            </p>
+                        </div>
+
+                        <!-- Percentage Difference -->
+                        <div
+                            class="card p-4 text-center {result.percentageDifference >
+                            5
+                                ? 'variant-filled-warning'
+                                : 'variant-filled-success'}"
+                        >
+                            <p class="text-xs opacity-80 mb-2">
+                                Percentage Difference
+                            </p>
+                            <p class="text-xl font-bold mb-1">
+                                {TemperatureConverter.formatTemperature(
+                                    result.percentageDifference,
+                                    2
+                                )}%
+                            </p>
+                            <p class="text-xs opacity-70">
+                                {result.percentageDifference < 1
+                                    ? 'Excellent!'
+                                    : result.percentageDifference < 5
+                                      ? 'Good'
+                                      : 'Significant'}
+                            </p>
+                        </div>
                     </div>
-
-                    <!-- Approximate Conversion -->
-                    <div class="card variant-filled-secondary p-4 text-center">
-                        <p class="text-xs opacity-80 mb-2">
-                            Approximate Conversion
-                        </p>
-                        <p class="text-xl font-bold mb-1">
-                            {TemperatureConverter.formatTemperature(
-                                result.approximate,
-                                2
-                            )}{TemperatureConverter.getUnitSymbol(targetUnit)}
-                        </p>
-                        <p class="text-xs opacity-70">
-                            {activeUnit === 'celsius'
-                                ? 'F ≈ 2C + 30'
-                                : 'C ≈ (F - 30) / 2'}
-                        </p>
-                    </div>
-
-                    <!-- Percentage Difference -->
+                {:else if validationError}
                     <div
-                        class="card p-4 text-center {result.percentageDifference >
-                        5
-                            ? 'variant-filled-warning'
-                            : 'variant-filled-success'}"
+                        class="card variant-ghost p-4"
+                        role="alert"
+                        aria-live="assertive"
+                        aria-atomic="true"
                     >
-                        <p class="text-xs opacity-80 mb-2">
-                            Percentage Difference
+                        <p class="text-center text-error-500">
+                            {validationError}
                         </p>
-                        <p class="text-xl font-bold mb-1">
-                            {TemperatureConverter.formatTemperature(
-                                result.percentageDifference,
-                                2
-                            )}%
+                    </div>
+                {:else}
+                    <div class="card variant-ghost p-4">
+                        <p class="text-center text-surface-600-300-token">
+                            Enter a temperature value to see the conversion
                         </p>
-                        <p class="text-xs opacity-70">
-                            {result.percentageDifference < 1
-                                ? 'Excellent!'
-                                : result.percentageDifference < 5
-                                  ? 'Good'
-                                  : 'Significant'}
+                    </div>
+                {/if}
+            </div>
+
+            <!-- Right Side: Temperature Graph -->
+            {#if isValidInput && result}
+                <div class="lg:w-1/2 flex">
+                    <div
+                        class="card variant-glass-surface p-6 flex flex-col w-full"
+                    >
+                        <h3 class="h3 mb-4 text-center">Visual Comparison</h3>
+                        <div class="flex-1 flex items-center justify-center">
+                            <TemperatureGraph
+                                centerValue={parsedValue}
+                                centerUnit={activeUnit}
+                            />
+                        </div>
+                        <p
+                            class="text-sm text-center mt-4 text-surface-600-300-token"
+                        >
+                            The red highlighted points show your input
+                            temperature ({TemperatureConverter.formatTemperature(
+                                parsedValue,
+                                1
+                            )}{TemperatureConverter.getUnitSymbol(activeUnit)})
+                            on both conversion lines. Hover over points to see
+                            exact values.
                         </p>
                     </div>
                 </div>
-            </div>
-        {:else if validationError}
-            <div
-                class="card variant-ghost p-4"
-                role="alert"
-                aria-live="assertive"
-                aria-atomic="true"
-            >
-                <p class="text-center text-error-500">
-                    {validationError}
-                </p>
-            </div>
-        {:else}
-            <div class="card variant-ghost p-4">
-                <p class="text-center text-surface-600-300-token">
-                    Enter a temperature value to see the conversion
-                </p>
-            </div>
-        {/if}
+            {/if}
+        </div>
     </div>
 </div>
