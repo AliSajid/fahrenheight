@@ -72,18 +72,21 @@ SPDX-License-Identifier: MIT
 
     let yScale = $derived(() => {
         const data = graphData()
-        const allYValues = [
-            ...data.map(p => p.exact),
-            ...data.map(p => p.approximate)
-        ]
-        const minY = Math.floor(Math.min(...allYValues) - 2)
-        const maxY = Math.ceil(Math.max(...allYValues) + 2)
+        // Get the center celsius value
+        const centerCelsius =
+            centerUnit === 'celsius'
+                ? centerValue
+                : Temperature.fahrenheitToCelsius(centerValue)
+
+        // Fixed range: center ± 10 degrees (total 20 degrees)
+        const minY = centerCelsius - 10
+        const maxY = centerCelsius + 10
         return {
             min: minY,
             max: maxY,
-            range: maxY - minY,
+            range: 20,
             toPixels: (y: number) =>
-                chartHeight - ((y - minY) / (maxY - minY)) * chartHeight
+                chartHeight - ((y - minY) / 20) * chartHeight
         }
     })
 
