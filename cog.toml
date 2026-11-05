@@ -57,5 +57,3 @@ pre_bump_hooks = [
 ]
 
 post_bump_hooks = []
-
-[packages]
