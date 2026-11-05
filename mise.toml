@@ -2,13 +2,12 @@
 # https://mise.jdx.dev/
 
 [tools]
+cocogitto = "7.0.0"
 node = "22.20.0"
 "npm:pa11y" = "9.0.1"
 "npm:wrangler" = "4.45.4"
 pnpm = "10.20.0"
 pre-commit = "4.3.0"
-
-"ubi:cocogitto/cocogitto" = { version = "6.4.0", exe = "cog" }
 
 [env]
 NODE_ENV = "development"
