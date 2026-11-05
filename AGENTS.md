@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2024 - 2025 Ali Sajid Imami
+
+SPDX-License-Identifier: MIT
+-->
+
 # AGENTS.md
 
 Guidance for AI coding agents working in the `fahrenheight` repository.
