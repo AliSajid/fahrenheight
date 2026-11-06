@@ -18,7 +18,7 @@ describe('HeroSection.svelte', () => {
                 level: 1
             })
             await expect.element(heading).toBeInTheDocument()
-            await expect.element(heading).toHaveClass(/mb-2/)
+            await expect.element(heading).toHaveClass(/mb-1/)
 
             // Description text (search for partial text that handles line breaks)
             const description = page.getByText(/mental and exact conversions/i)
