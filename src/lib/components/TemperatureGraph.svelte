@@ -71,7 +71,6 @@ SPDX-License-Identifier: MIT
     })
 
     let yScale = $derived(() => {
-        const data = graphData()
         // Get the center celsius value
         const centerCelsius =
             centerUnit === 'celsius'
@@ -120,7 +119,6 @@ SPDX-License-Identifier: MIT
         const scale = xScale()
         const ticks: { value: number; position: number }[] = []
         const tickCount = 8
-        const step = Math.ceil(scale.range / tickCount)
         for (let i = 0; i <= tickCount; i++) {
             const value = Math.round(scale.min + (i * scale.range) / tickCount)
             ticks.push({
@@ -153,7 +151,7 @@ SPDX-License-Identifier: MIT
     } | null>(null)
 
     function handlePointHover(
-        event: MouseEvent,
+        _event: MouseEvent,
         point: ReturnType<typeof graphData>[0],
         isExact: boolean
     ) {
@@ -190,7 +188,7 @@ SPDX-License-Identifier: MIT
 
         <!-- Grid lines -->
         <g class="opacity-20">
-            {#each xTicks() as tick}
+            {#each xTicks() as tick (tick.position)}
                 <line
                     x1={tick.position}
                     y1={padding.top}
@@ -200,7 +198,7 @@ SPDX-License-Identifier: MIT
                     stroke-width="1"
                 />
             {/each}
-            {#each yTicks() as tick}
+            {#each yTicks() as tick (tick.position)}
                 <line
                     x1={padding.left}
                     y1={tick.position}
@@ -231,7 +229,7 @@ SPDX-License-Identifier: MIT
         />
 
         <!-- X-axis ticks and labels -->
-        {#each xTicks() as tick}
+        {#each xTicks() as tick (tick.value)}
             <line
                 x1={tick.position}
                 y1={height - padding.bottom}
@@ -251,7 +249,7 @@ SPDX-License-Identifier: MIT
         {/each}
 
         <!-- Y-axis ticks and labels -->
-        {#each yTicks() as tick}
+        {#each yTicks() as tick (tick.value)}
             <line
                 x1={padding.left - 6}
                 y1={tick.position}
@@ -310,10 +308,12 @@ SPDX-License-Identifier: MIT
         />
 
         <!-- Data points for exact conversion -->
-        {#each graphData() as point}
+        {#each graphData() as point (point.exact)}
             {@const scale = { x: xScale(), y: yScale() }}
             {@const x = scale.x.toPixels(point.fahrenheit) + padding.left}
             {@const y = scale.y.toPixels(point.exact) + padding.top}
+            <!-- Hover tooltip is a mouse-only enhancement; the same data is
+                 exposed via <title> and the sr-only table below. -->
             <circle
                 cx={x}
                 cy={y}
@@ -321,17 +321,21 @@ SPDX-License-Identifier: MIT
                 fill={point.isCenter ? 'rgb(239, 68, 68)' : 'rgb(59, 130, 246)'}
                 stroke="white"
                 stroke-width="2"
+                role="img"
                 class="cursor-pointer transition-all hover:r-8"
                 onmouseenter={e => handlePointHover(e, point, true)}
                 onmouseleave={handlePointLeave}
-                aria-label="Exact: {point.fahrenheit.toFixed(
-                    1
-                )}°F = {point.exact.toFixed(2)}°C"
-            />
+            >
+                <title>
+                    Exact: {point.fahrenheit.toFixed(1)}°F = {point.exact.toFixed(
+                        2
+                    )}°C
+                </title>
+            </circle>
         {/each}
 
         <!-- Data points for approximate conversion -->
-        {#each graphData() as point}
+        {#each graphData() as point (point.exact)}
             {@const scale = { x: xScale(), y: yScale() }}
             {@const x = scale.x.toPixels(point.fahrenheit) + padding.left}
             {@const y = scale.y.toPixels(point.approximate) + padding.top}
@@ -342,13 +346,17 @@ SPDX-License-Identifier: MIT
                 fill={point.isCenter ? 'rgb(239, 68, 68)' : 'rgb(34, 197, 94)'}
                 stroke="white"
                 stroke-width="2"
+                role="img"
                 class="cursor-pointer transition-all hover:r-8"
                 onmouseenter={e => handlePointHover(e, point, false)}
                 onmouseleave={handlePointLeave}
-                aria-label="Approximate: {point.fahrenheit.toFixed(
-                    1
-                )}°F ≈ {point.approximate.toFixed(2)}°C"
-            />
+            >
+                <title>
+                    Approximate: {point.fahrenheit.toFixed(1)}°F ≈ {point.approximate.toFixed(
+                        2
+                    )}°C
+                </title>
+            </circle>
         {/each}
 
         <!-- Legend -->
@@ -441,4 +449,27 @@ SPDX-License-Identifier: MIT
             </g>
         {/if}
     </svg>
+
+    <!-- Screen-reader-only data table: the accessible equivalent of the plot -->
+    <table class="sr-only">
+        <caption>
+            Fahrenheit to Celsius: exact versus approximate conversion
+        </caption>
+        <thead>
+            <tr>
+                <th scope="col">Fahrenheit (°F)</th>
+                <th scope="col">Exact (°C)</th>
+                <th scope="col">Approximate (°C)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {#each graphData() as point (point.exact)}
+                <tr>
+                    <th scope="row">{point.fahrenheit.toFixed(1)}</th>
+                    <td>{point.exact.toFixed(2)}</td>
+                    <td>{point.approximate.toFixed(2)}</td>
+                </tr>
+            {/each}
+        </tbody>
+    </table>
 </div>

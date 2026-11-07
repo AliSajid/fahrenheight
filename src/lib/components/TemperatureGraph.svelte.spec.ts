@@ -21,12 +21,17 @@ describe('TemperatureGraph', () => {
         )
 
         // Check title
-        const title = await page.getByText('Temperature Conversion Comparison')
+        const title = await page.getByText(
+            'Temperature Conversion Comparison',
+            {
+                exact: true
+            }
+        )
         expect(title.query()).toBeTruthy()
 
         // Check axis labels
-        const xLabel = await page.getByText('Temperature (°F)')
-        const yLabel = await page.getByText('Temperature (°C)')
+        const xLabel = await page.getByText('Temperature (°F)', { exact: true })
+        const yLabel = await page.getByText('Temperature (°C)', { exact: true })
         expect(xLabel.query()).toBeTruthy()
         expect(yLabel.query()).toBeTruthy()
     })
@@ -36,10 +41,11 @@ describe('TemperatureGraph', () => {
             props: { centerValue: 32, centerUnit: 'fahrenheit' }
         })
 
-        // Check legend items
-        const exact = await page.getByText('Exact')
-        const approximate = await page.getByText('Approximate')
-        const inputTemp = await page.getByText('Input Temp')
+        // Exact matching avoids the per-point <title> elements
+        // ("Exact: 12.0°F = ...") and the sr-only table header ("Exact (°C)")
+        const exact = await page.getByText('Exact', { exact: true })
+        const approximate = await page.getByText('Approximate', { exact: true })
+        const inputTemp = await page.getByText('Input Temp', { exact: true })
 
         expect(exact.query()).toBeTruthy()
         expect(approximate.query()).toBeTruthy()
@@ -73,5 +79,33 @@ describe('TemperatureGraph', () => {
         // Should have data points
         const circles = container.querySelectorAll('circle')
         expect(circles.length).toBeGreaterThan(0)
+    })
+
+    it('annotates each data point with a <title>', () => {
+        const { container } = render(TemperatureGraph, {
+            props: { centerValue: 32, centerUnit: 'fahrenheit' }
+        })
+
+        // 21 points * 2 lines; legend circles have no <title>
+        const dataCircles = container.querySelectorAll('circle[role="img"]')
+        expect(dataCircles.length).toBe(42)
+
+        for (const circle of dataCircles) {
+            const text = circle.querySelector('title')?.textContent ?? ''
+            expect(text).toMatch(
+                /^\s*(Exact|Approximate): -?\d+\.\d°F [=≈] -?\d+\.\d{2}°C\s*$/
+            )
+        }
+    })
+
+    it('renders an accessible data table with one row per point', () => {
+        const { container } = render(TemperatureGraph, {
+            props: { centerValue: 32, centerUnit: 'fahrenheit' }
+        })
+
+        const table = container.querySelector('table')
+        expect(table).toBeTruthy()
+        expect(table?.querySelectorAll('thead th').length).toBe(3)
+        expect(table?.querySelectorAll('tbody tr').length).toBe(21)
     })
 })
