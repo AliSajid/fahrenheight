@@ -39,8 +39,11 @@ test.describe('Temperature Converter', () => {
                 .locator('.card.variant-filled-primary')
                 .getByText('Exact Conversion')
         ).toBeVisible()
-        await expect(page.getByText('30.00°C')).toBeVisible()
-        await expect(page.getByText('28.00°C')).toBeVisible()
+
+        // exact: true avoids the graph's <title> elements, which contain
+        // the same values inside longer strings
+        await expect(page.getByText('30.00°C', { exact: true })).toBeVisible()
+        await expect(page.getByText('28.00°C', { exact: true })).toBeVisible()
     })
 
     test('should convert celsius to fahrenheit', async ({ page }) => {
@@ -61,8 +64,8 @@ test.describe('Temperature Converter', () => {
                 .locator('.card.variant-filled-primary')
                 .getByText('Exact Conversion')
         ).toBeVisible()
-        await expect(page.getByText('77.00°F')).toBeVisible()
-        await expect(page.getByText('80.00°F')).toBeVisible()
+        await expect(page.getByText('77.00°F', { exact: true })).toBeVisible()
+        await expect(page.getByText('80.00°F', { exact: true })).toBeVisible()
     })
 
     test('should show percentage difference', async ({ page }) => {
@@ -71,8 +74,8 @@ test.describe('Temperature Converter', () => {
         await page.getByLabel('Enter Temperature').fill('68')
 
         // Wait for results and check for percentage value
-        await expect(page.getByText('20.00°C')).toBeVisible()
-        await expect(page.getByText('5.00%')).toBeVisible()
+        await expect(page.getByText('20.00°C', { exact: true })).toBeVisible()
+        await expect(page.getByText('5.00%', { exact: true })).toBeVisible()
     })
 
     test('should update when switching units', async ({ page }) => {
@@ -80,11 +83,11 @@ test.describe('Temperature Converter', () => {
 
         // Enter value in Fahrenheit
         await page.getByLabel('Enter Temperature').fill('32')
-        await expect(page.getByText('0.00°C')).toBeVisible()
+        await expect(page.getByText('0.00°C', { exact: true })).toBeVisible()
 
         // Switch to Celsius
         await page.getByRole('button', { name: '°C' }).click()
-        await expect(page.getByText('89.60°F')).toBeVisible()
+        await expect(page.getByText('89.60°F', { exact: true })).toBeVisible()
     })
 
     test('should show placeholder when no input', async ({ page }) => {
