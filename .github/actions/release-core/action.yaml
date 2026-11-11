@@ -76,6 +76,7 @@ runs:
           uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
           with:
               install_args: --yes
+              cache: false
 
         - name: Download build artifact
           uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
@@ -87,7 +88,7 @@ runs:
           shell: bash
           run: |
               echo 'Contents after download:'
-              ls -R build | head -100 || true
+              find build -print | head -100 || true
 
         - name: Compute version
           id: version
@@ -174,10 +175,12 @@ runs:
           shell: bash
           run: |
               sha256sum "${RELEASE_NAME}.zip" | tee SHA256SUMS.txt
-              echo "## SHA256" >> "$GITHUB_STEP_SUMMARY"
-              echo '```' >> "$GITHUB_STEP_SUMMARY"
-              cat SHA256SUMS.txt >> "$GITHUB_STEP_SUMMARY"
-              echo '```' >> "$GITHUB_STEP_SUMMARY"
+              {
+                  echo "## SHA256"
+                  echo '```'
+                  cat SHA256SUMS.txt
+                  echo '```'
+              } >> "$GITHUB_STEP_SUMMARY"
 
         - name: Import GPG key
           uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
@@ -241,24 +244,40 @@ runs:
               echo "Created release_notes.md" >> "$GITHUB_STEP_SUMMARY"
 
         - name: Create GitHub Release
-          uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
+          shell: bash
           env:
-              GITHUB_TOKEN: ${{ inputs.github_token }}
-          with:
-              tag_name: ${{ steps.version.outputs.version }}
-              name: ${{ steps.version.outputs.release_name }}
-              body_path: release_notes.md
-              draft: false
-              prerelease: ${{ inputs.release_type != 'stable' }}
-              files: |
-                  ${{ env.ARTIFACT }}
-                  ${{ env.ARTIFACT }}.asc
+              GH_TOKEN: ${{ inputs.github_token }}
+              RELEASE_TYPE: ${{ inputs.release_type }}
+          run: |
+              set -e
+
+              VERSION="${{ steps.version.outputs.version }}"
+              RELEASE_NAME="${{ steps.version.outputs.release_name }}"
+
+              # Create the GPG-signed tag locally if it does not exist yet
+              if ! git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null; then
+                  git tag "${VERSION}"
+              fi
+
+              RELEASE_ARGS=(
+                  "${VERSION}"
+                  "${ARTIFACT}"
+                  "${ARTIFACT}.asc"
                   SHA256SUMS.txt
-              fail_on_unmatched_files: true
+                  --title "${RELEASE_NAME}"
+                  -F release_notes.md
+              )
+              if [ "${RELEASE_TYPE}" != "stable" ]; then
+                  RELEASE_ARGS+=(--prerelease)
+              fi
+
+              gh release create "${RELEASE_ARGS[@]}"
 
         - name: Summary
           shell: bash
           run: |
-              echo "## Release Created" >> "$GITHUB_STEP_SUMMARY"
-              echo "Version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-              echo "Artifact: ${ARTIFACT}" >> "$GITHUB_STEP_SUMMARY"
+              {
+                  echo "## Release Created"
+                  echo "Version: ${{ steps.version.outputs.version }}"
+                  echo "Artifact: ${ARTIFACT}"
+              } >> "$GITHUB_STEP_SUMMARY"
