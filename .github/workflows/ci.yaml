@@ -10,6 +10,10 @@ on:
                 default: false
                 type: boolean
 
+concurrency:
+    group: ${{ github.workflow }}-caller-${{ github.ref }}
+    cancel-in-progress: true
+
 permissions:
     contents: read
 
@@ -17,6 +21,7 @@ jobs:
     release_type:
         name: Determine Release Type
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         outputs:
             release_type: ${{ steps.set-release-type.outputs.release_type }}
         steps:
@@ -25,13 +30,13 @@ jobs:
               shell: bash
               run: |
                   if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-                    echo "release_type=stable" >> $GITHUB_OUTPUT
+                    echo "release_type=stable" >> "$GITHUB_OUTPUT"
                   elif [[ "${GITHUB_REF_NAME}" == "next" ]]; then
-                    echo "release_type=next" >> $GITHUB_OUTPUT
+                    echo "release_type=next" >> "$GITHUB_OUTPUT"
                   elif [[ "${{ github.event.inputs.dev-release }}" == "true" ]]; then
-                    echo "release_type=dev" >> $GITHUB_OUTPUT
+                    echo "release_type=dev" >> "$GITHUB_OUTPUT"
                   else
-                    echo "release_type=none" >> $GITHUB_OUTPUT
+                    echo "release_type=none" >> "$GITHUB_OUTPUT"
                   fi
     test:
         name: Run Unit and Integration Tests
@@ -55,7 +60,10 @@ jobs:
             artifact_id: ${{ needs.build-and-package.outputs.artifact-id }}
             artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest }}
             release_type: ${{ needs.release_type.outputs.release_type }}
-        secrets: inherit # pragma: allowlist secret
+        secrets:
+            GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+            GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     deploy:
         name: Deploy Site
         needs: [release, build-and-package, release_type]
@@ -68,4 +76,6 @@ jobs:
             artifact_id: ${{ needs.build-and-package.outputs.artifact-id }}
             artifact_digest: ${{ needs.build-and-package.outputs.artifact-digest }}
             release_type: ${{ needs.release_type.outputs.release_type }}
-        secrets: inherit # pragma: allowlist secret
+        secrets:
+            CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+            CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
