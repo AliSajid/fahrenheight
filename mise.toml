@@ -3,6 +3,7 @@
 
 [tools]
 cocogitto = "7.0.0"
+jactionlint = { version = "2.5.0", workflow = "release.yaml" }
 node = "22.20.0"
 "npm:pa11y" = "9.0.1"
 "npm:wrangler" = "4.45.4"
