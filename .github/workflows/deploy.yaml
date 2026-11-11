@@ -15,6 +15,13 @@ on:
                 description: 'Release channel: stable | next | dev'
                 required: true
                 type: string
+        secrets:
+            CLOUDFLARE_API_TOKEN:
+                description: 'Cloudflare API token for Pages deployment'
+                required: true
+            CLOUDFLARE_ACCOUNT_ID:
+                description: 'Cloudflare account ID for Pages deployment'
+                required: true
     workflow_dispatch:
         inputs:
             release_type:
@@ -22,6 +29,10 @@ on:
                 required: true
                 default: dev
                 type: string
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
 
 permissions:
     contents: read
@@ -31,6 +42,7 @@ jobs:
     target:
         name: Resolve Deployment Target
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         outputs:
             pages_branch: ${{ steps.compute.outputs.pages_branch }}
             environment_name: ${{ steps.compute.outputs.environment_name }}
@@ -70,6 +82,7 @@ jobs:
         name: Deploy to Cloudflare Pages
         needs: target
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         environment:
             name: ${{ needs.target.outputs.environment_name }}
         concurrency:
@@ -92,6 +105,7 @@ jobs:
               uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
               with:
                   install_args: --yes
+                  cache: false
 
             - name: Download build artifact
               uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
@@ -103,7 +117,7 @@ jobs:
               shell: bash
               run: |
                   echo 'Contents after download:'
-                  ls -R build | head -100 || true
+                  find build -print | head -100 || true
             - name: Deploy with Wrangler Action
               uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
               # pragma: allowlist secret

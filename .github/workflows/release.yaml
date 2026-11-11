@@ -16,18 +16,32 @@ on:
                 description: 'Type of release: stable, next, dev'
                 required: true
                 type: string
+        secrets:
+            GPG_PRIVATE_KEY:
+                description: 'ASCII-armored GPG private key for signing releases'
+                required: true
+            GPG_KEY_PASSPHRASE:
+                description: 'Passphrase for the GPG private key'
+                required: true
+            GITHUB_TOKEN:
+                description: 'GitHub token used to create releases'
+                required: true
 
-permissions:
-    contents: write
-    id-token: write
-    attestations: write
-    actions: read
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
     publish-release:
         name: Publish Release
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         if: ${{ inputs.release_type == 'dev' || inputs.release_type == 'next' || inputs.release_type == 'stable' }}
+        permissions:
+            contents: write
+            id-token: write
+            attestations: write
+            actions: read
         steps:
             - name: Harden Runner
               uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
@@ -49,6 +63,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
               with:
+                  persist-credentials: false
                   fetch-depth: 0
             - name: Run release core
               uses: ./.github/actions/release-core
