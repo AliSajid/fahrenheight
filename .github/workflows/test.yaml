@@ -23,7 +23,7 @@ jobs:
             - name: Harden Runner
               uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
               with:
-                  disable-sudo-and-containers: true
+                  disable-sudo-and-containers: false
                   egress-policy: audit
                   allowed-endpoints: >
                       api.github.com:443
@@ -63,7 +63,7 @@ jobs:
               run: mise run check
 
             - name: Install Playwright browsers
-              run: pnpm exec playwright install
+              run: pnpm exec playwright install --with-deps
 
             - name: Run unit tests
               run: mise run test-unit -- --run
