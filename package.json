@@ -39,11 +39,11 @@
         "vitest-browser-svelte": "^2.2.1"
     },
     "engines": {
-        "node": ">=22",
-        "pnpm": ">=10"
+        "node": ">=24",
+        "pnpm": ">=12"
     },
     "name": "fahrenheight",
-    "packageManager": "pnpm@10.20.0+sha512.cf9998222162dd85864d0a8102e7892e7ba4ceadebbf5a31f9c2fce48dfce317a9c53b9f6464d1ef9042cba2e02ae02a9f7c143a2b438cd93c91840f0192b9dd",
+    "packageManager": "pnpm@12.20.0+sha512.6ccc74997ccef4e67999788e18dbfbfa583e2a849668668db4707b6a8306662f47156e650232a985bd3ec24cf9364c1aa154d37e51ed7aac62c1cd1e3afc80c3",
     "private": true,
     "scripts": {
         "prepare": "svelte-kit sync || echo ''",
