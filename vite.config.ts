@@ -49,7 +49,8 @@ export default defineConfig({
                         instances: [
                             { browser: 'chromium' },
                             { browser: 'webkit', headless: true },
-                            { browser: 'firefox', headless: true }]
+                            { browser: 'firefox', headless: true }
+                        ]
                     },
                     include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
                     exclude: ['e2e/**']
