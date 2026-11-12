@@ -73,12 +73,13 @@ runs:
               echo "All required inputs validated"
 
         - name: Setup mise + cog
-          uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+          uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
           with:
               install_args: --yes
+              cache: false
 
         - name: Download build artifact
-          uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+          uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
           with:
               artifact-ids: ${{ inputs.artifact_id }}
               path: build
@@ -87,7 +88,7 @@ runs:
           shell: bash
           run: |
               echo 'Contents after download:'
-              ls -R build | head -100 || true
+              find build -print | head -100 || true
 
         - name: Compute version
           id: version
@@ -174,13 +175,15 @@ runs:
           shell: bash
           run: |
               sha256sum "${RELEASE_NAME}.zip" | tee SHA256SUMS.txt
-              echo "## SHA256" >> "$GITHUB_STEP_SUMMARY"
-              echo '```' >> "$GITHUB_STEP_SUMMARY"
-              cat SHA256SUMS.txt >> "$GITHUB_STEP_SUMMARY"
-              echo '```' >> "$GITHUB_STEP_SUMMARY"
+              {
+                  echo "## SHA256"
+                  echo '```'
+                  cat SHA256SUMS.txt
+                  echo '```'
+              } >> "$GITHUB_STEP_SUMMARY"
 
         - name: Import GPG key
-          uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
+          uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
           with:
               gpg_private_key: ${{ inputs.gpg_private_key }}
               passphrase: ${{ inputs.gpg_passphrase }}
@@ -197,7 +200,7 @@ runs:
               echo "Signed ${ARTIFACT}" >> "$GITHUB_STEP_SUMMARY"
 
         - name: Generate SLSA attestations
-          uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
+          uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
           with:
               subject-path: |
                   ${{ env.ARTIFACT }}
@@ -206,8 +209,10 @@ runs:
           shell: bash
           env:
               RELEASE_TYPE: ${{ inputs.release_type }}
+              GITHUB_REPOSITORY: ${{ github.repository }}
+              STEPS_VERSION_VERSION: ${{ steps.version.outputs.version }}
           run: |
-              VERSION="${{ steps.version.outputs.version }}"
+              VERSION="${STEPS_VERSION_VERSION}"
               SHORT_SHA=$(git rev-parse --short HEAD)
               PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
               if [[ -n "$PREV" ]]; then
@@ -225,9 +230,9 @@ runs:
 
               \`\`\`bash
               # Get artifact + signatures
-              wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip
-              wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/${RELEASE_NAME}.zip.asc
-              wget https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/SHA256SUMS.txt
+              wget https://github.com/$GITHUB_REPOSITORY/releases/download/$VERSION/${RELEASE_NAME}.zip
+              wget https://github.com/$GITHUB_REPOSITORY/releases/download/$VERSION/${RELEASE_NAME}.zip.asc
+              wget https://github.com/$GITHUB_REPOSITORY/releases/download/$VERSION/SHA256SUMS.txt
               gpg --keyserver keyserver.ubuntu.com --recv-keys E9A645792F93A4AC64E3025F30147AA3515A2E41
               gpg --verify ${RELEASE_NAME}.zip.asc ${RELEASE_NAME}.zip
               sha256sum -c SHA256SUMS.txt
@@ -235,30 +240,50 @@ runs:
 
               \`\`\`bash
               # Verify SLSA attestation (GitHub CLI)
-              gh attestation verify ${RELEASE_NAME}.zip --repo ${{ github.repository }}
+              gh attestation verify ${RELEASE_NAME}.zip --repo $GITHUB_REPOSITORY
               \`\`\`
               EOF
               echo "Created release_notes.md" >> "$GITHUB_STEP_SUMMARY"
 
         - name: Create GitHub Release
-          uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
+          shell: bash
           env:
-              GITHUB_TOKEN: ${{ inputs.github_token }}
-          with:
-              tag_name: ${{ steps.version.outputs.version }}
-              name: ${{ steps.version.outputs.release_name }}
-              body_path: release_notes.md
-              draft: false
-              prerelease: ${{ inputs.release_type != 'stable' }}
-              files: |
-                  ${{ env.ARTIFACT }}
-                  ${{ env.ARTIFACT }}.asc
+              STEPS_VERSION_VERSION: ${{ steps.version.outputs.version }}
+              STEPS_VERSION_RELEASE_NAME: ${{ steps.version.outputs.release_name }}
+              GH_TOKEN: ${{ inputs.github_token }}
+              RELEASE_TYPE: ${{ inputs.release_type }}
+          run: |
+              set -e
+
+              VERSION="${STEPS_VERSION_VERSION}"
+              RELEASE_NAME="${STEPS_VERSION_RELEASE_NAME}"
+
+              # Create the GPG-signed tag locally if it does not exist yet
+              if ! git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null; then
+                  git tag "${VERSION}"
+              fi
+
+              RELEASE_ARGS=(
+                  "${VERSION}"
+                  "${ARTIFACT}"
+                  "${ARTIFACT}.asc"
                   SHA256SUMS.txt
-              fail_on_unmatched_files: true
+                  --title "${RELEASE_NAME}"
+                  -F release_notes.md
+              )
+              if [ "${RELEASE_TYPE}" != "stable" ]; then
+                  RELEASE_ARGS+=(--prerelease)
+              fi
+
+              gh release create "${RELEASE_ARGS[@]}"
 
         - name: Summary
           shell: bash
           run: |
-              echo "## Release Created" >> "$GITHUB_STEP_SUMMARY"
-              echo "Version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-              echo "Artifact: ${ARTIFACT}" >> "$GITHUB_STEP_SUMMARY"
+              {
+                  echo "## Release Created"
+                  echo "Version: ${STEPS_VERSION_VERSION}"
+                  echo "Artifact: ${ARTIFACT}"
+              } >> "$GITHUB_STEP_SUMMARY"
+          env:
+              STEPS_VERSION_VERSION: ${{ steps.version.outputs.version }}

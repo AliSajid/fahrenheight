@@ -3,9 +3,11 @@
 
 [tools]
 cocogitto = "7.0.0"
+jactionlint = { version = "2.5.0", workflow = "release.yaml" }
 node = "22.20.0"
 "npm:pa11y" = "9.0.1"
 "npm:wrangler" = "4.45.4"
+"pipx:reuse" = "6.3.0"
 pnpm = "10.20.0"
 pre-commit = "4.3.0"
 
@@ -16,7 +18,7 @@ CI = false
 
 [tasks.dev]
 description = "Start development server"
-run = "pnpm exec vite dev"
+run = "pnpm exec vite"
 
 [tasks.dev-open]
 description = "Start development server and open browser"
@@ -74,6 +76,10 @@ run = "pnpm exec vitest run"
 description = "Run E2E tests with Playwright"
 run = "pnpm exec playwright test"
 
+[tasks.report-e2e]
+description = "Show E2E test report with Playwright"
+run = "pnpm exec playwright show-report"
+
 [tasks.test-coverage]
 description = "Run all Vitest tests with coverage"
 run = "pnpm exec vitest run --coverage"
@@ -88,7 +94,7 @@ run = "pnpm exec vitest run --project=browser --coverage"
 
 [tasks.install]
 description = "Install dependencies"
-run = "pnpm install"
+run = "pnpm install --frozen-lockfile"
 
 [tasks.sync]
 description = "Sync SvelteKit types"
