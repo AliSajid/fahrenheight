@@ -11,11 +11,8 @@ runs:
         - name: Install mise
           uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
           with:
+              install: true
               install_args: --yes
-
-        - name: Install dependencies
-          shell: bash
-          run: mise run install
 
         - name: Sync SvelteKit
           shell: bash
