@@ -23,9 +23,6 @@ on:
             GPG_KEY_PASSPHRASE:
                 description: 'Passphrase for the GPG private key'
                 required: true
-            GITHUB_TOKEN:
-                description: 'GitHub token used to create releases'
-                required: true
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}

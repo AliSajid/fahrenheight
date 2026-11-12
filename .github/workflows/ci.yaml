@@ -64,7 +64,6 @@ jobs:
         secrets:
             GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
             GPG_KEY_PASSPHRASE: ${{ secrets.GPG_KEY_PASSPHRASE }}
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     deploy:
         name: Deploy Site
         needs: [release, build-and-package, release_type]
