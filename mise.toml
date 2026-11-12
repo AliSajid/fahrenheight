@@ -90,7 +90,7 @@ run = "pnpm exec vitest run --project=browser --coverage"
 
 [tasks.install]
 description = "Install dependencies"
-run = "pnpm install"
+run = "pnpm install --frozen-lockfile"
 
 [tasks.sync]
 description = "Sync SvelteKit types"
