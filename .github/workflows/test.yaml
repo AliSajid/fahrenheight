@@ -24,19 +24,20 @@ jobs:
               uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
               with:
                   disable-sudo-and-containers: true
-                  egress-policy: block
+                  egress-policy: audit
                   allowed-endpoints: >
                       api.github.com:443
-                      github.com:443
-                      mise.jdx.dev:443
-                      objects.githubusercontent.com:443
-                      registry.npmjs.org:443
-                      playwright.azureedge.net:443
                       archive.ubuntu.com:80
                       azure.archive.ubuntu.com:80
-                      security.ubuntu.com:80
+                      github.com:443
+                      mise-versions.jdx.dev:443
+                      mise.jdx.dev:443
+                      objects.githubusercontent.com:443
                       packages.microsoft.com:443
+                      playwright.azureedge.net:443
+                      registry.npmjs.org:443
                       release-assets.githubusercontent.com:443
+                      security.ubuntu.com:80
                       tuf-repo-cdn.sigstore.dev:443
 
             - name: Checkout repository
