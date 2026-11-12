@@ -76,6 +76,10 @@ run = "pnpm exec vitest run"
 description = "Run E2E tests with Playwright"
 run = "pnpm exec playwright test"
 
+[tasks.report-e2e]
+description = "Show E2E test report with Playwright"
+run = "pnpm exec playwright show-report"
+
 [tasks.test-coverage]
 description = "Run all Vitest tests with coverage"
 run = "pnpm exec vitest run --coverage"
