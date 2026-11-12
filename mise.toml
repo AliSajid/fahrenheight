@@ -18,7 +18,7 @@ CI = false
 
 [tasks.dev]
 description = "Start development server"
-run = "pnpm exec vite dev"
+run = "pnpm exec vite"
 
 [tasks.dev-open]
 description = "Start development server and open browser"
