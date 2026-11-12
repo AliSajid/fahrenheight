@@ -4,6 +4,7 @@ on:
     pull_request:
         branches:
             - main
+            - next
     schedule:
         - cron: '31 19 * * 5'
 
