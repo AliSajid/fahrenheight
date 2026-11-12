@@ -99,6 +99,7 @@ jobs:
                       api.cloudflare.com:443
                       registry.npmjs.org:443
                       objects.githubusercontent.com:443
+                      release-assets.githubusercontent.com:443
 
             - name: Install mise
               uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
