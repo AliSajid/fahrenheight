@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Ali Sajid Imami
+#
+# SPDX-License-Identifier: CC0-1.0
+
 # yaml-language-server: $schema=https://raw.githubusercontent.com/jdx/jactionlint/main/schema/jactionlint-config.json
 profile: default
 
