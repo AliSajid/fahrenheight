@@ -10,7 +10,7 @@ import TemperatureConverter from './TemperatureConverter.svelte'
 describe('TemperatureConverter.svelte', () => {
     describe('component structure', () => {
         it('should render with icon, title, input, unit buttons, and placeholder', async () => {
-            render(TemperatureConverter)
+            await render(TemperatureConverter)
 
             // Title with ColoredIcon (tested in ColoredIcon.spec.ts)
             const heading = page.getByRole('heading', {
@@ -39,7 +39,7 @@ describe('TemperatureConverter.svelte', () => {
 
     describe('unit selection', () => {
         it('should have fahrenheit selected by default and allow switching units', async () => {
-            render(TemperatureConverter)
+            await render(TemperatureConverter)
 
             const celsiusButton = page.getByRole('button', { name: '°C' })
             const fahrenheitButton = page.getByRole('button', { name: '°F' })
@@ -60,7 +60,7 @@ describe('TemperatureConverter.svelte', () => {
 
     describe('temperature conversion - Fahrenheit to Celsius', () => {
         it('should display all result cards with formulas when input is valid', async () => {
-            render(TemperatureConverter)
+            await render(TemperatureConverter)
 
             const input = page.getByLabelText(/enter temperature/i)
             await input.fill('100')
@@ -88,7 +88,7 @@ describe('TemperatureConverter.svelte', () => {
 
     describe('temperature conversion - Celsius to Fahrenheit', () => {
         it('should display results with correct formulas when unit is switched', async () => {
-            render(TemperatureConverter)
+            await render(TemperatureConverter)
 
             const input = page.getByLabelText(/enter temperature/i)
             const celsiusButton = page.getByRole('button', { name: '°C' })
@@ -113,7 +113,7 @@ describe('TemperatureConverter.svelte', () => {
 
     describe('input handling', () => {
         it('should accept negative, decimal inputs and display summary', async () => {
-            render(TemperatureConverter)
+            await render(TemperatureConverter)
 
             const input = page.getByLabelText(/enter temperature/i)
 
@@ -131,7 +131,7 @@ describe('TemperatureConverter.svelte', () => {
 
     describe('reactive updates', () => {
         it('should update formulas and results when switching units and entering input', async () => {
-            render(TemperatureConverter)
+            await render(TemperatureConverter)
 
             const input = page.getByLabelText(/enter temperature/i)
             const celsiusButton = page.getByRole('button', { name: '°C' })

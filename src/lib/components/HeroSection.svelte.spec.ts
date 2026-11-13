@@ -10,7 +10,7 @@ import HeroSection from './HeroSection.svelte'
 describe('HeroSection.svelte', () => {
     describe('component structure', () => {
         it('should render with h1 heading, description, and proper section structure', async () => {
-            render(HeroSection)
+            await render(HeroSection)
 
             // H1 heading with proper hierarchy
             const heading = page.getByRole('heading', {
@@ -28,7 +28,7 @@ describe('HeroSection.svelte', () => {
 
     describe('content', () => {
         it('should display all key information about the application', async () => {
-            render(HeroSection)
+            await render(HeroSection)
 
             const contentChecks = [
                 /celsius/i,
@@ -45,7 +45,7 @@ describe('HeroSection.svelte', () => {
 
     describe('styling', () => {
         it('should have proper responsive layout and text styling', async () => {
-            render(HeroSection)
+            await render(HeroSection)
 
             // Find description paragraph by partial text
             const description = page.getByText(/mental and exact conversions/i)

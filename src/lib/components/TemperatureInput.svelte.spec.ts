@@ -11,7 +11,7 @@ test('TemperatureInput renders with label, input, and unit buttons', async () =>
     const mockValueChange = vi.fn()
     const mockUnitChange = vi.fn()
 
-    render(TemperatureInput, {
+    await render(TemperatureInput, {
         value: '',
         activeUnit: 'fahrenheit',
         onValueChange: mockValueChange,
@@ -39,7 +39,7 @@ test('TemperatureInput displays provided value and highlights active unit', asyn
     const mockValueChange = vi.fn()
     const mockUnitChange = vi.fn()
 
-    render(TemperatureInput, {
+    await render(TemperatureInput, {
         value: '32.5',
         activeUnit: 'celsius',
         onValueChange: mockValueChange,
@@ -59,7 +59,7 @@ test('TemperatureInput calls onValueChange when input changes', async () => {
     const mockValueChange = vi.fn()
     const mockUnitChange = vi.fn()
 
-    render(TemperatureInput, {
+    await render(TemperatureInput, {
         value: '',
         activeUnit: 'fahrenheit',
         onValueChange: mockValueChange,
@@ -76,7 +76,7 @@ test('TemperatureInput calls onUnitChange when unit buttons are clicked', async 
     const mockValueChange = vi.fn()
     const mockUnitChange = vi.fn()
 
-    render(TemperatureInput, {
+    await render(TemperatureInput, {
         value: '50',
         activeUnit: 'fahrenheit',
         onValueChange: mockValueChange,
