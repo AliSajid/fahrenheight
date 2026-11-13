@@ -10,7 +10,7 @@ import Navbar from './Navbar.svelte'
 describe('Navbar.svelte', () => {
     describe('component structure and navigation', () => {
         it('should render navbar with brand, icon, and all navigation links with correct hrefs', async () => {
-            render(Navbar)
+            await render(Navbar)
 
             const nav = page.getByRole('navigation')
             await expect.element(nav).toBeInTheDocument()
@@ -43,7 +43,7 @@ describe('Navbar.svelte', () => {
 
     describe('styling and layout', () => {
         it('should have opaque background, sticky positioning, and proper layout classes', async () => {
-            render(Navbar)
+            await render(Navbar)
 
             const nav = page.getByRole('navigation')
 

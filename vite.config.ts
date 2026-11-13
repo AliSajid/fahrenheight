@@ -39,7 +39,6 @@ export default defineConfig({
                 }
             },
             {
-                plugins: [sveltekit()],
                 test: {
                     name: 'browser',
                     browser: {

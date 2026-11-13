@@ -17,7 +17,7 @@ vi.mock('$app/state', () => ({
 }))
 
 test('NavLink renders with correct href and label', async () => {
-    render(NavLink, {
+    await render(NavLink, {
         href: '/test-page',
         label: 'Test Page'
     })
@@ -28,7 +28,7 @@ test('NavLink renders with correct href and label', async () => {
 })
 
 test('NavLink applies active styles when pathname matches href', async () => {
-    render(NavLink, {
+    await render(NavLink, {
         href: '/',
         label: 'Home'
     })
@@ -38,7 +38,7 @@ test('NavLink applies active styles when pathname matches href', async () => {
 })
 
 test('NavLink applies inactive styles when pathname does not match href', async () => {
-    render(NavLink, {
+    await render(NavLink, {
         href: '/other-page',
         label: 'Other Page'
     })
@@ -48,7 +48,7 @@ test('NavLink applies inactive styles when pathname does not match href', async 
 })
 
 test('NavLink has correct base classes', async () => {
-    render(NavLink, {
+    await render(NavLink, {
         href: '/test',
         label: 'Test'
     })
