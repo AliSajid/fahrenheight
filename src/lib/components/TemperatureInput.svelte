@@ -5,7 +5,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <script lang="ts">
-    import type { TemperatureUnit } from '$lib/utils/types'
+    import type { TemperatureUnit } from '#lib/utils/types.ts'
 
     interface Props {
         value: string

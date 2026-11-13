@@ -52,5 +52,9 @@
         "test:browser": "vitest --config=vitest.browser.config.ts"
     },
     "type": "module",
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "imports": {
+        "#lib": "./src/lib/index.js",
+        "#lib/*": "./src/lib/*"
+    }
 }
