@@ -58,7 +58,7 @@ LICENSES/              # License texts for REUSE compliance
 
 ## Component Architecture
 
-All components live in `src/lib/components/` and are re-exported from `src/lib/index.ts` (the barrel). Import from `$lib` rather than deep paths.
+All components live in `src/lib/components/` and are re-exported from `src/lib/index.ts` (the barrel). Import from `#lib` rather than deep paths.
 
 - **`TemperatureConverter.svelte`**: Main UI. Uses Svelte 5 runes (`$state`, `$derived`, `$props()`). Validates input to a max of 2 decimal places via regex `/\.(\d+)/` and avoids showing `NaN`. Displays Exact, Approximate, and Percentage Difference results with color-coded cards (`variant-filled-warning` for >5% diff, `variant-filled-success` for ≤5%).
 - **`TemperatureInput.svelte`**: Props `{ value, activeUnit, onValueChange, onUnitChange }`. Uses `inputmode="decimal"` for mobile keyboards. Employs Skeleton UI button groups (`btn-group preset-filled-surface-200-800`) with active states via `preset-filled-primary-500`.
@@ -118,7 +118,7 @@ This project uses a **Mise-First Approach**. Do not use `pnpm` scripts directly.
 
 ### Do
 
-- Import components/utils from `$lib` (the barrel), not deep paths.
+- Import components/utils from `#lib` (the barrel), not deep paths.
 - Keep all logic client-side — this is a static site.
 - Preserve SPDX headers on every file.
 - Use Conventional Commits via Cocogitto (`cog commit`).

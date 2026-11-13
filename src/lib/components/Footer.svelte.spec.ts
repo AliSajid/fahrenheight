@@ -10,7 +10,7 @@ import Footer from './Footer.svelte'
 describe('Footer.svelte', () => {
     describe('component structure', () => {
         it('should render footer with all three sections and proper grid layout', async () => {
-            render(Footer)
+            await render(Footer)
 
             const footer = page.getByRole('contentinfo')
             await expect.element(footer).toBeInTheDocument()
@@ -32,7 +32,7 @@ describe('Footer.svelte', () => {
 
     describe('technology stack section', () => {
         it('should display all technologies with bullet separators', async () => {
-            render(Footer)
+            await render(Footer)
 
             const technologies = [
                 'TypeScript',
@@ -53,7 +53,7 @@ describe('Footer.svelte', () => {
 
     describe('attribution section', () => {
         it('should render built with message and author link with hover effect', async () => {
-            render(Footer)
+            await render(Footer)
 
             const builtWith = page.getByText(/built with/i)
             const authorLink = page.getByRole('link', {
@@ -75,7 +75,7 @@ describe('Footer.svelte', () => {
         })
 
         it('should display emotion icons with aria labels', async () => {
-            render(Footer)
+            await render(Footer)
 
             // Check for aria-labels on the emotion icons
             const passionIcon = page.getByLabelText('Passion')
@@ -90,7 +90,7 @@ describe('Footer.svelte', () => {
 
     describe('source code section', () => {
         it('should display source code label and repository link', async () => {
-            render(Footer)
+            await render(Footer)
 
             const sourceLabel = page.getByText('Source Code:')
             const repoLink = page.getByRole('link', {
@@ -110,7 +110,7 @@ describe('Footer.svelte', () => {
 
     describe('styling', () => {
         it('should have opaque theme-adaptive background colors', async () => {
-            render(Footer)
+            await render(Footer)
 
             const footer = page.getByRole('contentinfo')
             await expect.element(footer).toHaveClass(/bg-white/)
@@ -118,7 +118,7 @@ describe('Footer.svelte', () => {
         })
 
         it('should have proper border and text styling', async () => {
-            render(Footer)
+            await render(Footer)
 
             const footer = page.getByRole('contentinfo')
             await expect.element(footer).toHaveClass(/border-t/)

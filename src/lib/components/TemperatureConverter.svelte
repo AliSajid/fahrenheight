@@ -9,8 +9,8 @@ SPDX-License-Identifier: MIT
     import ColoredIcon from './ColoredIcon.svelte'
     import TemperatureInput from './TemperatureInput.svelte'
     import TemperatureGraph from './TemperatureGraph.svelte'
-    import { TemperatureConverter } from '$lib/utils/TemperatureConverter.class'
-    import type { TemperatureUnit } from '$lib/utils/types'
+    import { TemperatureConverter } from '#lib/utils/TemperatureConverter.class.ts'
+    import type { TemperatureUnit } from '#lib/utils/types.ts'
 
     // State - Using runes for Svelte 5 reactivity
     let inputValue = $state('')

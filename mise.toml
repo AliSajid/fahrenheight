@@ -4,11 +4,11 @@
 [tools]
 cocogitto = "7.0.0"
 jactionlint = { version = "2.5.0", workflow = "release.yaml" }
-node = "22.20.0"
+node = "24.22.2"
 "npm:pa11y" = "9.0.1"
 "npm:wrangler" = "4.45.4"
 "pipx:reuse" = "6.3.0"
-pnpm = "10.20.0"
+pnpm = "12.18.0"
 pre-commit = "4.3.0"
 
 [env]
@@ -22,7 +22,7 @@ run = "pnpm exec vite"
 
 [tasks.dev-open]
 description = "Start development server and open browser"
-run = "pnpm exec vite dev --open"
+run = "pnpm exec vite --open"
 
 [tasks.build]
 description = "Build static site for production"

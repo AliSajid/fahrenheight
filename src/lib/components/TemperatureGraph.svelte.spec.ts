@@ -4,12 +4,12 @@
 
 import { describe, it, expect } from 'vitest'
 import { render } from 'vitest-browser-svelte'
-import { page } from '@vitest/browser/context'
+import { page } from 'vitest/browser'
 import TemperatureGraph from './TemperatureGraph.svelte'
 
-describe('TemperatureGraph', () => {
+describe('TemperatureGraph', async () => {
     it('renders graph with correct structure', async () => {
-        const { container } = render(TemperatureGraph, {
+        const { container } = await render(TemperatureGraph, {
             props: { centerValue: 70, centerUnit: 'fahrenheit' }
         })
 
@@ -37,7 +37,7 @@ describe('TemperatureGraph', () => {
     })
 
     it('renders legend with correct entries', async () => {
-        render(TemperatureGraph, {
+        await render(TemperatureGraph, {
             props: { centerValue: 32, centerUnit: 'fahrenheit' }
         })
 
@@ -52,8 +52,8 @@ describe('TemperatureGraph', () => {
         expect(inputTemp.query()).toBeTruthy()
     })
 
-    it('generates correct data range around center value', () => {
-        const { container } = render(TemperatureGraph, {
+    it('generates correct data range around center value', async () => {
+        const { container } = await render(TemperatureGraph, {
             props: { centerValue: 100, centerUnit: 'fahrenheit' }
         })
 
@@ -67,8 +67,8 @@ describe('TemperatureGraph', () => {
         expect(circles.length).toBe(45)
     })
 
-    it('handles celsius input correctly', () => {
-        const { container } = render(TemperatureGraph, {
+    it('handles celsius input correctly', async () => {
+        const { container } = await render(TemperatureGraph, {
             props: { centerValue: 0, centerUnit: 'celsius' }
         })
 
@@ -81,8 +81,8 @@ describe('TemperatureGraph', () => {
         expect(circles.length).toBeGreaterThan(0)
     })
 
-    it('annotates each data point with a <title>', () => {
-        const { container } = render(TemperatureGraph, {
+    it('annotates each data point with a <title>', async () => {
+        const { container } = await render(TemperatureGraph, {
             props: { centerValue: 32, centerUnit: 'fahrenheit' }
         })
 
@@ -98,8 +98,8 @@ describe('TemperatureGraph', () => {
         }
     })
 
-    it('renders an accessible data table with one row per point', () => {
-        const { container } = render(TemperatureGraph, {
+    it('renders an accessible data table with one row per point', async () => {
+        const { container } = await render(TemperatureGraph, {
             props: { centerValue: 32, centerUnit: 'fahrenheit' }
         })
 

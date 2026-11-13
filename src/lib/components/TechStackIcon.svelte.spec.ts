@@ -16,10 +16,10 @@ import {
 } from '@icons-pack/svelte-simple-icons'
 import { colord } from 'colord'
 
-describe('TechStackIcon.svelte', () => {
-    describe('component rendering', () => {
-        it('should render an anchor tag', () => {
-            const { container } = render(TechStackIcon, {
+describe('TechStackIcon.svelte', async () => {
+    describe('component rendering', async () => {
+        it('should render an anchor tag', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Thermometer,
                 name: 'Test Icon',
                 url: 'https://example.com'
@@ -29,8 +29,8 @@ describe('TechStackIcon.svelte', () => {
             expect(anchor).toBeTruthy()
         })
 
-        it('should render ColoredIcon component', () => {
-            const { container } = render(TechStackIcon, {
+        it('should render ColoredIcon component', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: TypeScript,
                 name: 'TypeScript',
                 url: 'https://typescriptlang.org'
@@ -40,8 +40,8 @@ describe('TechStackIcon.svelte', () => {
             expect(span).toBeTruthy()
         })
 
-        it('should render with sr-only text', () => {
-            const { container } = render(TechStackIcon, {
+        it('should render with sr-only text', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Svelte,
                 name: 'Svelte',
                 url: 'https://svelte.dev'
@@ -52,8 +52,8 @@ describe('TechStackIcon.svelte', () => {
             expect(srOnly?.textContent).toBe('Svelte')
         })
 
-        it('should render with default size', () => {
-            const { container } = render(TechStackIcon, {
+        it('should render with default size', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Heart,
                 name: 'Heart',
                 url: 'https://example.com'
@@ -63,8 +63,8 @@ describe('TechStackIcon.svelte', () => {
             expect(anchor).toBeTruthy()
         })
 
-        it('should render with custom size', () => {
-            const { container } = render(TechStackIcon, {
+        it('should render with custom size', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Tailwindcss,
                 name: 'Tailwind CSS',
                 url: 'https://tailwindcss.com',
@@ -76,9 +76,9 @@ describe('TechStackIcon.svelte', () => {
         })
     })
 
-    describe('anchor attributes', () => {
-        it('should have all required attributes for secure external links', () => {
-            const { container } = render(TechStackIcon, {
+    describe('anchor attributes', async () => {
+        it('should have all required attributes for secure external links', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: TypeScript,
                 name: 'TypeScript',
                 url: 'https://typescriptlang.org'
@@ -93,8 +93,8 @@ describe('TechStackIcon.svelte', () => {
             expect(anchor?.getAttribute('aria-label')).toBe('TypeScript')
         })
 
-        it('should set aria-label from name prop', () => {
-            const { container } = render(TechStackIcon, {
+        it('should set aria-label from name prop', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: GitHub,
                 name: 'My Custom Name',
                 url: 'https://example.com'
@@ -105,9 +105,9 @@ describe('TechStackIcon.svelte', () => {
         })
     })
 
-    describe('styling classes', () => {
-        it('should have all styling classes on anchor', () => {
-            const { container } = render(TechStackIcon, {
+    describe('styling classes', async () => {
+        it('should have all styling classes on anchor', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: TypeScript,
                 name: 'TypeScript',
                 url: 'https://typescriptlang.org'
@@ -120,8 +120,8 @@ describe('TechStackIcon.svelte', () => {
             expect(anchor?.classList.contains('inline-block')).toBe(true)
         })
 
-        it('should have sr-only class on text span', () => {
-            const { container } = render(TechStackIcon, {
+        it('should have sr-only class on text span', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Svelte,
                 name: 'Svelte',
                 url: 'https://svelte.dev'
@@ -132,9 +132,9 @@ describe('TechStackIcon.svelte', () => {
         })
     })
 
-    describe('ColoredIcon integration', () => {
-        it('should pass props to ColoredIcon and render with brand colors', () => {
-            const { container } = render(TechStackIcon, {
+    describe('ColoredIcon integration', async () => {
+        it('should pass props to ColoredIcon and render with brand colors', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: TypeScript,
                 name: 'TypeScript',
                 url: 'https://typescriptlang.org',
@@ -151,8 +151,8 @@ describe('TechStackIcon.svelte', () => {
             expect(style).toContain(expectedColor)
         })
 
-        it('should support custom size prop', () => {
-            const { container } = render(TechStackIcon, {
+        it('should support custom size prop', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Svelte,
                 name: 'Svelte',
                 url: 'https://svelte.dev',
@@ -165,9 +165,9 @@ describe('TechStackIcon.svelte', () => {
         })
     })
 
-    describe('accessibility', () => {
-        it('should have accessible link with aria-label', () => {
-            const { container } = render(TechStackIcon, {
+    describe('accessibility', async () => {
+        it('should have accessible link with aria-label', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: TypeScript,
                 name: 'TypeScript',
                 url: 'https://typescriptlang.org'
@@ -177,8 +177,8 @@ describe('TechStackIcon.svelte', () => {
             expect(anchor?.hasAttribute('aria-label')).toBe(true)
         })
 
-        it('should have sr-only text for screen readers', () => {
-            const { container } = render(TechStackIcon, {
+        it('should have sr-only text for screen readers', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Svelte,
                 name: 'Svelte Framework',
                 url: 'https://svelte.dev'
@@ -188,8 +188,8 @@ describe('TechStackIcon.svelte', () => {
             expect(srOnly?.textContent).toBe('Svelte Framework')
         })
 
-        it('should open link in new tab securely', () => {
-            const { container } = render(TechStackIcon, {
+        it('should open link in new tab securely', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: GitHub,
                 name: 'GitHub',
                 url: 'https://github.com'
@@ -200,8 +200,8 @@ describe('TechStackIcon.svelte', () => {
             expect(anchor?.getAttribute('rel')).toBe('noopener noreferrer')
         })
 
-        it('should have both aria-label and sr-only text', () => {
-            const { container } = render(TechStackIcon, {
+        it('should have both aria-label and sr-only text', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Tailwindcss,
                 name: 'Tailwind CSS',
                 url: 'https://tailwindcss.com'
@@ -215,9 +215,9 @@ describe('TechStackIcon.svelte', () => {
         })
     })
 
-    describe('different icon types', () => {
-        it('should render Lucide icons', () => {
-            const { container } = render(TechStackIcon, {
+    describe('different icon types', async () => {
+        it('should render Lucide icons', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Thermometer,
                 name: 'Thermometer',
                 url: 'https://example.com'
@@ -227,8 +227,8 @@ describe('TechStackIcon.svelte', () => {
             expect(svg).toBeTruthy()
         })
 
-        it('should render Simple Icons', () => {
-            const { container } = render(TechStackIcon, {
+        it('should render Simple Icons', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: TypeScript,
                 name: 'TypeScript',
                 url: 'https://typescriptlang.org'
@@ -238,8 +238,8 @@ describe('TechStackIcon.svelte', () => {
             expect(svg).toBeTruthy()
         })
 
-        it('should apply brand colors for Simple Icons', () => {
-            const { container } = render(TechStackIcon, {
+        it('should apply brand colors for Simple Icons', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Svelte,
                 name: 'Svelte',
                 url: 'https://svelte.dev'
@@ -252,8 +252,8 @@ describe('TechStackIcon.svelte', () => {
             expect(style).toContain(expectedColor) // Svelte brand color
         })
 
-        it('should render Heart Lucide icon', () => {
-            const { container } = render(TechStackIcon, {
+        it('should render Heart Lucide icon', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Heart,
                 name: 'Heart',
                 url: 'https://example.com'
@@ -267,10 +267,10 @@ describe('TechStackIcon.svelte', () => {
         })
     })
 
-    describe('link behavior', () => {
-        it('should handle various URL formats correctly', () => {
+    describe('link behavior', async () => {
+        it('should handle various URL formats correctly', async () => {
             // Test with path
-            let result = render(TechStackIcon, {
+            let result = await render(TechStackIcon, {
                 icon: GitHub,
                 name: 'GitHub',
                 url: 'https://github.com/AliSajid'
@@ -280,20 +280,20 @@ describe('TechStackIcon.svelte', () => {
             expect(anchor?.getAttribute('href')).toBe(
                 'https://github.com/AliSajid'
             )
-            result.unmount()
+            await result.unmount()
 
             // Test without trailing slash
-            result = render(TechStackIcon, {
+            result = await render(TechStackIcon, {
                 icon: Svelte,
                 name: 'Svelte',
                 url: 'https://svelte.dev'
             })
             anchor = result.container.querySelector('a')
             expect(anchor?.getAttribute('href')).toBe('https://svelte.dev')
-            result.unmount()
+            await result.unmount()
 
             // Test with trailing slash
-            result = render(TechStackIcon, {
+            result = await render(TechStackIcon, {
                 icon: Tailwindcss,
                 name: 'Tailwind CSS',
                 url: 'https://tailwindcss.com/'
@@ -302,13 +302,13 @@ describe('TechStackIcon.svelte', () => {
             expect(anchor?.getAttribute('href')).toBe(
                 'https://tailwindcss.com/'
             )
-            result.unmount()
+            await result.unmount()
         })
     })
 
-    describe('component composition', () => {
-        it('should contain both ColoredIcon and sr-only text', () => {
-            const { container } = render(TechStackIcon, {
+    describe('component composition', async () => {
+        it('should contain both ColoredIcon and sr-only text', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: TypeScript,
                 name: 'TypeScript',
                 url: 'https://typescriptlang.org'
@@ -321,8 +321,8 @@ describe('TechStackIcon.svelte', () => {
             expect(srOnly).toBeTruthy()
         })
 
-        it('should wrap ColoredIcon in anchor tag', () => {
-            const { container } = render(TechStackIcon, {
+        it('should wrap ColoredIcon in anchor tag', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Svelte,
                 name: 'Svelte',
                 url: 'https://svelte.dev'
@@ -334,8 +334,8 @@ describe('TechStackIcon.svelte', () => {
             expect(coloredIcon).toBeTruthy()
         })
 
-        it('should have sr-only as sibling of ColoredIcon', () => {
-            const { container } = render(TechStackIcon, {
+        it('should have sr-only as sibling of ColoredIcon', async () => {
+            const { container } = await render(TechStackIcon, {
                 icon: Tailwindcss,
                 name: 'Tailwind CSS',
                 url: 'https://tailwindcss.com'
