@@ -5,8 +5,8 @@ SPDX-License-Identifier: MIT
 -->
 
 <script lang="ts">
-    import { Temperature } from '$lib/utils/Temperature.class'
-    import type { TemperatureUnit } from '$lib/utils/types'
+    import { Temperature } from '#lib/utils/Temperature.class.ts'
+    import type { TemperatureUnit } from '#lib/utils/types.ts'
 
     interface Props {
         centerValue: number

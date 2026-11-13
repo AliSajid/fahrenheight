@@ -5,8 +5,8 @@ SPDX-License-Identifier: MIT
 -->
 
 <script lang="ts">
-    import { TemperatureConverter } from '$lib'
-    import HeroSection from '$lib/components/HeroSection.svelte'
+    import { TemperatureConverter } from '#lib'
+    import HeroSection from '#lib/components/HeroSection.svelte'
 </script>
 
 <svelte:head>
