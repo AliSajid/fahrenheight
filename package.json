@@ -19,7 +19,7 @@
         "@types/node": "^24.19.2",
         "@vitest/browser": "^5.1.0",
         "@vitest/browser-playwright": "^5.1.0",
-        "@vitest/coverage-v8": "^5.1.0",
+        "@vitest/coverage-istanbul": "^5.1.0",
         "colord": "^2.12.0",
         "eslint": "^10.14.0",
         "eslint-config-prettier": "^10.1.8",
@@ -48,8 +48,7 @@
     "packageManager": "pnpm@12.20.0+sha512.6ccc74997ccef4e67999788e18dbfbfa583e2a849668668db4707b6a8306662f47156e650232a985bd3ec24cf9364c1aa154d37e51ed7aac62c1cd1e3afc80c3",
     "private": true,
     "scripts": {
-        "prepare": "svelte-kit sync || echo ''",
-        "test:browser": "vitest --config=vitest.browser.config.ts"
+        "prepare": "svelte-kit sync || echo ''"
     },
     "type": "module",
     "version": "0.0.1",
