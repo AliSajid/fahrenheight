@@ -31,7 +31,7 @@ export default defineConfig({
         expect: { requireAssertions: true },
         coverage: {
             enabled: false /* Enable coverage collection on demand via --coverage flag */,
-            provider: 'v8',
+            provider: 'istanbul',
             reporter: ['text', 'json', 'html', 'lcov'],
             reportsDirectory: './test-results/coverage',
             include: ['src/**/*.{js,ts,svelte}'],
