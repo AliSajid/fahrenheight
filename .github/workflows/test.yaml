@@ -26,11 +26,13 @@ jobs:
                   disable-sudo-and-containers: false
                   egress-policy: block
                   allowed-endpoints: >
+                      *.archive.ubuntu.com:443
                       *.archive.ubuntu.com:80
                       api.github.com:443
                       api.npmjs.org:443
                       api.osv.dev:443
                       api.snapcraft.io:443
+                      archive.ubuntu.com:443
                       cdn.playwright.dev:443
                       endevco.github.io:443
                       esm.ubuntu.com:443
@@ -46,6 +48,7 @@ jobs:
                       raw.githubusercontent.com:443
                       registry.npmjs.org:443
                       release-assets.githubusercontent.com:443
+                      security.ubuntu.com:443
                       skeleton.dev:443
                       storage.googleapis.com:443
                       svelte.dev:443
