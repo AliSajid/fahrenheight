@@ -70,3 +70,4 @@ devicon
 wordmark
 (?i)lockfile
 (?i)npm
+(?i)Color

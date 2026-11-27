@@ -15,6 +15,13 @@ on:
                 description: 'Release channel: stable | next | dev'
                 required: true
                 type: string
+        secrets:
+            CLOUDFLARE_API_TOKEN:
+                description: 'Cloudflare API token for Pages deployment'
+                required: true
+            CLOUDFLARE_ACCOUNT_ID:
+                description: 'Cloudflare account ID for Pages deployment'
+                required: true
     workflow_dispatch:
         inputs:
             release_type:
@@ -23,14 +30,18 @@ on:
                 default: dev
                 type: string
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
 permissions:
     contents: read
-    pull-requests: read
 
 jobs:
     target:
         name: Resolve Deployment Target
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-26.04
+        timeout-minutes: 5
         outputs:
             pages_branch: ${{ steps.compute.outputs.pages_branch }}
             environment_name: ${{ steps.compute.outputs.environment_name }}
@@ -69,7 +80,8 @@ jobs:
     deploy:
         name: Deploy to Cloudflare Pages
         needs: target
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-26.04
+        timeout-minutes: 15
         environment:
             name: ${{ needs.target.outputs.environment_name }}
         concurrency:
@@ -77,24 +89,28 @@ jobs:
             cancel-in-progress: false
         steps:
             - name: Harden Runner
-              uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
+              uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
               with:
-                  disable-sudo: true
-                  egress-policy: block
+                  disable-sudo-and-containers: true
+                  egress-policy: audit
                   allowed-endpoints: |
+                      api.cloudflare.com:443
                       api.github.com:443
                       github.com:443
-                      api.cloudflare.com:443
-                      registry.npmjs.org:443
+                      mise-versions.jdx.dev:443
                       objects.githubusercontent.com:443
+                      registry.npmjs.org:443
+                      release-assets.githubusercontent.com:443
+                      tuf-repo-cdn.sigstore.dev:443
 
             - name: Install mise
-              uses: jdx/mise-action@f8dfbcc150159126838e44b882bf34bd98fd90f3 # v2.1.0
+              uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
               with:
                   install_args: --yes
+                  cache: false
 
             - name: Download build artifact
-              uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+              uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
               with:
                   artifact-ids: ${{ inputs.artifact_id }}
                   path: build
@@ -103,9 +119,9 @@ jobs:
               shell: bash
               run: |
                   echo 'Contents after download:'
-                  ls -R build | head -100 || true
+                  find build -print | head -100 || true
             - name: Deploy with Wrangler Action
-              uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
+              uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
               # pragma: allowlist secret
               with:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
