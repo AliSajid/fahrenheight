@@ -252,15 +252,30 @@ runs:
               STEPS_VERSION_RELEASE_NAME: ${{ steps.version.outputs.release_name }}
               GH_TOKEN: ${{ inputs.github_token }}
               RELEASE_TYPE: ${{ inputs.release_type }}
+              GITHUB_REPOSITORY: ${{ github.repository }}
           run: |
               set -e
+              set -o pipefail
 
               VERSION="${STEPS_VERSION_VERSION}"
               RELEASE_NAME="${STEPS_VERSION_RELEASE_NAME}"
 
-              # Create the GPG-signed tag locally if it does not exist yet
+              # Verify tag exists locally
               if ! git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null; then
-                  git tag "${VERSION}"
+                  echo "Error: Tag ${VERSION} not found locally"
+                  exit 1
+              fi
+
+              # Push tag to remote (idempotent: skip if already exists)
+              if ! git ls-remote --tags origin "refs/tags/${VERSION}" | grep -q "${VERSION}"; then
+                  echo "Pushing tag ${VERSION} to remote..."
+                  git push origin "refs/tags/${VERSION}" \
+                      "https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" || {
+                      echo "Error: Failed to push tag ${VERSION} to remote"
+                      exit 1
+                  }
+              else
+                  echo "Tag ${VERSION} already exists on remote, skipping push"
               fi
 
               RELEASE_ARGS=(
